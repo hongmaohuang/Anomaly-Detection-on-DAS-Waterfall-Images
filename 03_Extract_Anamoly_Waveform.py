@@ -7,88 +7,68 @@ import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime, timedelta
 import obspy
+import os
+from pathlib import Path
 
-# Open the file and read the first three header lines
+
+# Open and read header
 with open('anomaly_points.log', 'r') as f:
     header_lines = [next(f) for _ in range(3)]
-    # Extract the starting time from the second header line
     starting_time_str = header_lines[1].split(":", 1)[1].strip()
 
-# Read the log file, skipping the header lines
-df = pd.read_csv('anomaly_points.log', skiprows=3, names=['Distance_km', 'Time_sec'], header=None)
+# Read data
+df = pd.read_csv('anomaly_points.log', skiprows=3, names=['Distance_km', 'Time_sec'])
 
-waveform_files = glob.glob('./DAS_data/20250331/waveforms/*.hdf5')
+# Verify input data
+if df.empty:
+    raise ValueError("No anomaly data found in log file")
 
-ds_all = []
-for i in range(len(waveform_files)):
-    ds = xdas.open_mfdataarray(waveform_files[i], engine="asn")
-    ds_all.append(ds)
+# Load waveform files
+data_dir = Path('./DAS_data/20250331/waveforms')
+waveform_files = glob.glob(str(data_dir / '*.hdf5'))
 
-# Assuming ds_all is your list of xdas.DataArray objects
-# Sort by the first time value
+# Process DAS data
+ds_all = [xdas.open_mfdataarray(f, engine="asn") for f in waveform_files]
 ds_all_sorted = sorted(ds_all, key=lambda ds: ds.coords['time'].values[0])
-
-# Convert each xdas.DataArray to xarray.DataArray
-ds_all_xr_sorted = [
-    xr.DataArray(
-        ds.values,
-        coords={'time': ds.coords['time'], 'distance': ds.coords['distance']},
-        dims=['time', 'distance']
-    )
-    for ds in ds_all_sorted
-]
-
-# Concatenate along the time dimension
+ds_all_xr_sorted = [xr.DataArray(ds.values, 
+                    coords={'time': ds.coords['time'], 'distance': ds.coords['distance']},
+                    dims=['time', 'distance']) 
+                    for ds in ds_all_sorted]
 ds_concat_xr = xr.concat(ds_all_xr_sorted, dim='time')
 
-''' 
-# 假設 ds_concat_xr 是你的 xarray.DataArray
-time = ds_concat_xr.time.values
-distance = ds_concat_xr.distance.values
-data = ds_concat_xr.values
+# Create output directory
+output_dir = Path('./Detected_anomalies')
+output_dir.mkdir(exist_ok=True)
 
-# 創建圖形
-plt.figure(figsize=(12, 6))
-plt.pcolormesh(distance, time, data, shading='auto', cmap='seismic')
-plt.colorbar(label='Strain or Amplitude')
-plt.xlabel('Distance (km)')
-plt.ylabel('Time')
+starting_time = datetime.strptime(starting_time_str, '%Y%m%d_%H%M%S')
 
-# reverse the y-axis
-plt.gca().invert_yaxis()
-'''
-# Potentially有個問題是guage length太長，在抓最近距離的時候會抓到太遠的channel
-for order in range(len(df)):
+for order, (_, first_anomaly) in enumerate(df.iterrows()):
     print(f"Processing anomaly {order + 1} of {len(df)}")
-    first_anomaly = df.iloc[order]
+    
     distance_km = first_anomaly['Distance_km']
     time_sec = first_anomaly['Time_sec']
-
-    # Calculate the actual time of the anomaly
-    starting_time = datetime.strptime(starting_time_str, '%Y%m%d_%H%M%S')
     anomaly_time = starting_time + timedelta(seconds=time_sec)
 
-    # Find the closest distance in ds_concat_xr
-    closest_distance = ds_concat_xr.distance.sel(distance=distance_km, method='nearest')
-
-    # Extract the waveform at this distance (time series)
-    waveform = ds_concat_xr.sel(distance=closest_distance, method='nearest')
-
-    # Extract time and data values for plotting
+    # Extract waveform
+    waveform = ds_concat_xr.sel(distance=distance_km, method='nearest')
     time_values = waveform.time.values
-    data_values = waveform.values
+    
+    if len(time_values) < 2:
+        print(f"Warning: Insufficient time points for anomaly {order + 1}")
+        continue
 
-    # Save anomaly waveform as MSEED
+    # Create obspy trace
     anomaly_waveform = obspy.Trace()
     time_diff = (time_values[1] - time_values[0]).astype('timedelta64[ns]').astype(float) / 1e9
     anomaly_waveform.stats.sampling_rate = 1 / time_diff
-    anomaly_waveform.data = data_values
-    anomaly_waveform.stats.starttime = obspy.UTCDateTime(time_values[0])
+    anomaly_waveform.data = waveform.values
+    anomaly_waveform.stats.starttime = obspy.UTCDateTime(str(time_values[0]))    
+    anomaly_waveform.stats.network = 'DAS'
 
-    # Convert anomaly_time to UTCDateTime and calculate end time
+    # Trim and save
     anomaly_start = obspy.UTCDateTime(anomaly_time)
-    anomaly_end = anomaly_start + 10  # Adds 10 seconds directly with UTCDateTime
-
-    # Trim the waveform and save
-    anomaly_waveform.trim(starttime=anomaly_start, endtime=anomaly_end)
-    anomaly_waveform.write(f"./Detected_anamolies/anomaly_waveform_{order}.mseed", format="MSEED")
+    anomaly_end = anomaly_start + 10
+    
+    #anomaly_waveform.trim(starttime=anomaly_start, endtime=anomaly_end)
+    output_file = output_dir / f"anomaly_waveform_{order}.mseed"
+    anomaly_waveform.write(str(output_file), format="MSEED")
