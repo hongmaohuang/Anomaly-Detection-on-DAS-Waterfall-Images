@@ -18,8 +18,8 @@ contamination_rate = 0.03
 colormap_waterfall = "jet"
 
 # ======= Font (Optional) =======
-fm.fontManager.addfont('/home/hmhuang/Work/BY_thesis/Helvetica.ttf')
-title_font = FontProperties(fname='/home/hmhuang/Work/BY_thesis/Helvetica_Bold.ttf', size=18, weight='bold')
+fm.fontManager.addfont('./Helvetica.ttf')
+title_font = FontProperties(fname='./Helvetica_Bold.ttf', size=18, weight='bold')
 matplotlib.rcParams['font.family'] = 'Helvetica'
 matplotlib.rcParams['font.size'] = 12
 
@@ -28,7 +28,7 @@ total_duration_sec = 17 * 60
 total_distance_km = 28.086
 
 # ======= Load File =======
-file_pattern = f'/home/hmhuang/Work/Research_Assistant/hualian_das/Scatseisnet_2D/DAS_data/{data_date}/waterfall/*.npz'
+file_pattern = f'./DAS_data/{data_date}/waterfall_npz/*.npz'
 file_list = sorted(glob.glob(file_pattern))
 if target_idx >= len(file_list):
     raise IndexError(f"target_idx exceeds available files ({len(file_list)})")
