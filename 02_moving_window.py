@@ -14,7 +14,7 @@ from skimage.measure import label, regionprops
 # ==== CUSTOMIZABLE PARAMETERS ====
 # Data settings
 DATA_DATE = "20250331"
-TARGET_IDX = 1
+TARGET_IDX = 0
 CONTAMINATION_RATE = 0.03
 COLORMAP_WATERFALL = "jet"
 
@@ -158,6 +158,7 @@ plt.show()
 # ==== Write Anomaly Log ====
 with open('anomaly_points.log', 'w') as f:
     f.write("Anomaly Points Log (Distance_km, Time_sec)\n")
+    f.write(f"Starting Time: {dt.strftime('%Y%m%d_%H%M%S')}\n")
     f.write("=" * 40 + "\n")
     for d, t in zip(anomaly_distances, anomaly_times):
         f.write(f"{d:.4f}, {t:.2f}\n")
