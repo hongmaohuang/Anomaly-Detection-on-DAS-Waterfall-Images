@@ -52,7 +52,7 @@ def compute_entropy(signal, bins=10):
 # =================================
 # Define a function to extract 13 features from a single waveform
 # =================================
-def extract_features(waveform, bins=10, sampling_rate=1.0):
+def extract_features(waveform, bins=8, sampling_rate=1.0):
     # (1) Normalize waveform (avoid division by zero by adding a small constant)
     norm_waveform = (waveform - np.mean(waveform)) / (np.std(waveform) + 1e-8)
     
@@ -89,11 +89,12 @@ def extract_features(waveform, bins=10, sampling_rate=1.0):
 # =================================
 feature_matrix = []
 for wf in waveforms:
-    features = extract_features(wf, bins=10, sampling_rate=1.0)
+    features = extract_features(wf, bins=8, sampling_rate=1.0)
     feature_matrix.append(features)
 feature_matrix = np.array(feature_matrix)
 print("Feature matrix shape:", feature_matrix.shape)
 
+# %%
 # =================================
 # Apply PCA to reduce to 2 dimensions (visualization is not performed here)
 # =================================
