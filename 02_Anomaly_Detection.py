@@ -130,9 +130,8 @@ anomalous_idx = np.where(lof_scores > threshold)[0]
 # ==== Write Anomaly Log ====
 anomaly_distances = np.array([window_centers_distance[i] for i in anomalous_idx])
 anomaly_times = np.array([window_centers_time[i] for i in anomalous_idx])
-filename = os.path.basename(file)
-parts = filename.split('_')
-log_name = f'./DAS_data/{DATA_DATE}/anomaly_points_{parts[2]}_{parts[3].split(".")[0]}_anomaly.log'
+
+log_name = f'./DAS_data/{DATA_DATE}/anomaly_points.log'
 with open(log_name, 'w') as f:
     f.write("Anomaly Points Log (Distance_km, Time_sec)\n")
     f.write(f"Starting Time: {dt.strftime('%Y%m%d_%H%M%S')}\n")
