@@ -20,5 +20,3 @@ for fname in os.listdir(DATA_PATH):
         cropped_img = img_array[CROP_TOP:CROP_BOTTOM, CROP_LEFT:CROP_RIGHT, :]
         npz_name = os.path.splitext(fname)[0] + ".npz"
         np.savez(os.path.join(OUTPUT_FOLDER, npz_name), waterfall=cropped_img)
-
-print("Finish")
