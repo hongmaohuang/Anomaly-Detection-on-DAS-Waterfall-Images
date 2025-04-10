@@ -10,8 +10,6 @@ from datetime import datetime
 import os
 import xdas
 from pathlib import Path
-# Read the CSV with clustering results
-df = pd.read_csv('waveform_cluster_results.csv')
 
 # ==== CUSTOMIZABLE PARAMETERS ====
 # Data settings
@@ -29,6 +27,9 @@ DATA_DIR = Path('./DAS_data/20250331/waveforms')
 waveform_files = list(DATA_DIR.glob('*.hdf5'))
 data = xdas.open_mfdataarray(str(waveform_files[0]), engine="asn")
 max_distance = np.max(data.coords['distance'].values)
+
+# Read the CSV with clustering results
+df = pd.read_csv(f'./DAS_data/{DATA_DATE}/waveform_cluster_results.csv')
 
 # Constants
 TOTAL_DURATION_SEC = 17 * 60
@@ -82,7 +83,7 @@ for clust, color in zip(unique_clusters, colors):
     ax.scatter(x_points, offsets, marker='o', color=color, edgecolor='black',
                s=80, label=f"Cluster {clust}")
 
-ax.legend()
+ax.legend(loc='lower right')
 ax.set_title("DAS Waterfall with Classification Points")
 plt.tight_layout()
 plt.show()

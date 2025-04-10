@@ -8,6 +8,7 @@ from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 import pandas as pd
 
+DATE = '20250331'
 # =================================
 # Natural sorting function
 # =================================
@@ -119,7 +120,7 @@ for i, header in enumerate(header_info):
     records.append(record)
 
 df = pd.DataFrame(records)
-csv_filename = "waveform_cluster_results.csv"
+csv_filename = f"./DAS_data/{DATE}/waveform_cluster_results.csv"
 df.to_csv(csv_filename, index=False)
 print(f"CSV file generated: {csv_filename}")
 

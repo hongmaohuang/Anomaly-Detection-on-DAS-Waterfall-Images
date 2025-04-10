@@ -11,15 +11,14 @@ from pathlib import Path
 from tqdm import tqdm
 
 # ===== Configurable Variables =====
-LOG_FILE = 'anomaly_points.log'
-DATA_DIR = Path('./DAS_data/20250331/waveforms')
+DATE = '20250331'  
+LOG_FILE = f'./DAS_data/{DATE}/anomaly_points.log'
+DATA_DIR = Path(f'./DAS_data/{DATE}/waveforms')
 OUTPUT_DIR = Path('./Detected_anomalies')
 TIME_SPAN = 10  # Duration in seconds for trimming the anomaly waveform
 DAS_NETWORK = 'DH'
 #Only 2 charcters for network code on MiniSEED!
  
-# NETCDF_FILENAME = 'ds_concat_xr_20250331.nc'  # Uncomment to save waveform data to netCDF
-
 # ===== Read log file header and extract starting time =====
 with open(LOG_FILE, 'r') as f:
     header_lines = [next(f) for _ in range(3)]
@@ -27,14 +26,9 @@ with open(LOG_FILE, 'r') as f:
 
 # ===== Read anomaly data from log file =====
 df = pd.read_csv(LOG_FILE, skiprows=3, names=['Distance_km', 'Time_sec'])
-if df.empty:
-    raise ValueError("No anomaly data found in the log file.")
 
 # ===== Load waveform files =====
 waveform_files = list(DATA_DIR.glob('*.hdf5'))
-if not waveform_files:
-    raise ValueError("No waveform files found in the specified directory.")
-
 # ===== Process and sort waveform data =====
 ds_all = [xdas.open_mfdataarray(str(f), engine="asn") for f in tqdm(waveform_files, desc='Loading waveform files')]
 ds_all_sorted = sorted(ds_all, key=lambda ds: ds.coords['time'].values[0])
@@ -48,17 +42,12 @@ ds_all_xr_sorted = [
 ds_concat_xr = xr.concat(ds_all_xr_sorted, dim='time')
 ds_concat_xr['distance'] = ds_concat_xr['distance'] / 1000
 
-# ===== Optional: Save and load concatenated waveform data via netCDF =====
-# ds_concat_xr.to_netcdf(NETCDF_FILENAME, engine='h5netcdf')
-# ds_concat_xr = xr.open_dataset(NETCDF_FILENAME, engine='h5netcdf')
-
 # ===== Create output directory if it does not exist =====
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 # ===== Convert starting time string to a datetime object =====
 starting_time = datetime.strptime(starting_time_str, '%Y%m%d_%H%M%S')
 
-# %%
 # ===== Process each anomaly =====
 for i, (_, anomaly) in enumerate(df.iterrows()):
     print(f"Processing anomaly {i+1} of {len(df)}")
