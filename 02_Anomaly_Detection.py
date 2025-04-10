@@ -113,9 +113,9 @@ for i in range(0, num_time_samples - WINDOW_SIZE_TIME + 1, STEP_TIME):
 features_array = np.vstack(features_list)
 
 # Save extracted features (optional)
-np.savez("DSM_features_moving_window.npz", features=features_array,
-         window_centers_time=window_centers_time,
-         window_centers_distance=window_centers_distance)
+#np.savez("DSM_features_moving_window.npz", features=features_array,
+#         window_centers_time=window_centers_time,
+#         window_centers_distance=window_centers_distance)
 
 # ==== Anomaly Detection using LOF ====
 lof = LocalOutlierFactor(n_neighbors=150, novelty=False)
@@ -130,7 +130,10 @@ anomalous_idx = np.where(lof_scores > threshold)[0]
 # ==== Write Anomaly Log ====
 anomaly_distances = np.array([window_centers_distance[i] for i in anomalous_idx])
 anomaly_times = np.array([window_centers_time[i] for i in anomalous_idx])
-with open('anomaly_points.log', 'w') as f:
+filename = os.path.basename(file)
+parts = filename.split('_')
+log_name = f'./DAS_data/{DATA_DATE}/anomaly_points_{parts[2]}_{parts[3].split(".")[0]}_anomaly.log'
+with open(log_name, 'w') as f:
     f.write("Anomaly Points Log (Distance_km, Time_sec)\n")
     f.write(f"Starting Time: {dt.strftime('%Y%m%d_%H%M%S')}\n")
     f.write("=" * 40 + "\n")
