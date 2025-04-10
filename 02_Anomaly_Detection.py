@@ -8,7 +8,7 @@ import matplotlib
 import matplotlib.font_manager as fm
 from matplotlib.font_manager import FontProperties
 from datetime import datetime
-from sklearn.ensemble import IsolationForest
+from sklearn.neighbors import LocalOutlierFactor
 from skimage.measure import label, regionprops
 import xdas
 from pathlib import Path
@@ -25,22 +25,25 @@ FONT_PATH = './Helvetica.ttf'
 TITLE_FONT_PATH = './Helvetica_Bold.ttf'
 FONT_SIZE = 12
 TITLE_FONT_SIZE = 18
-DATA_DIR = Path('./DAS_data/20250331/waveforms')
+DURATION_WATERFALL = 17 
+# (in minutes)
+DATA_DIR = Path(f'./DAS_data/{DATA_DATE}/waveforms')
 
-waveform_files = list(DATA_DIR.glob('*.hdf5'))
-data = xdas.open_mfdataarray(str(waveform_files[0]), engine="asn")
-max_distance = np.max(data.coords['distance'].values)
 
-# Constants
-TOTAL_DURATION_SEC = 17 * 60
-# depends on your DAS waterfall image
-TOTAL_DISTANCE_KM = max_distance/1000
 
 # Moving window parameters
 WINDOW_SIZE_TIME = 10      # Window height along time axis (pixels)
 WINDOW_SIZE_CHANNEL = 3    # Window width along distance axis (pixels)
 STEP_TIME = 5              # Step size along time axis (pixels)
 STEP_CHANNEL = 1           # Step size along distance axis (pixels)
+
+
+# ==== Duration and distance of DAS waterfall ====
+waveform_files = list(DATA_DIR.glob('*.hdf5'))
+data = xdas.open_mfdataarray(str(waveform_files[0]), engine="asn")
+max_distance = np.max(data.coords['distance'].values)
+TOTAL_DURATION_SEC = DURATION_WATERFALL * 60
+TOTAL_DISTANCE_KM = max_distance/1000
 
 # ==== Setup Fonts ====
 fm.fontManager.addfont(FONT_PATH)
@@ -49,8 +52,8 @@ matplotlib.rcParams['font.family'] = 'Helvetica'
 matplotlib.rcParams['font.size'] = FONT_SIZE
 
 # ==== Load DAS File ====
-file_pattern = f'./DAS_data/{DATA_DATE}/waterfall_npz/*.npz'
-file_list = sorted(glob.glob(file_pattern))
+waterfall_npz = f'./DAS_data/{DATA_DATE}/waterfall_npz/*.npz'
+file_list = sorted(glob.glob(waterfall_npz))
 if TARGET_IDX >= len(file_list):
     raise IndexError(f"TARGET_IDX exceeds available files ({len(file_list)})")
 file = file_list[TARGET_IDX]
@@ -84,17 +87,16 @@ for i in range(0, num_time_samples - WINDOW_SIZE_TIME + 1, STEP_TIME):
         feat_mean = window.mean()
         feat_std = window.std()
         feat_max = window.max()
-        sobel_x = cv2.Sobel(window, cv2.CV_64F, 1, 0, ksize=3)
-        sobel_y = cv2.Sobel(window, cv2.CV_64F, 0, 1, ksize=3)
-        sobel_mag = np.sqrt(sobel_x**2 + sobel_y**2)
-        sobel_feature = sobel_mag.mean()
+        hist, _ = np.histogram(window, bins=32, density=True)
+        hist = hist[hist > 0]  # 避免 log(0)
+        entropy_feature = -np.sum(hist * np.log2(hist))
         laplacian_feature = cv2.Laplacian(window, cv2.CV_64F).var()
 
         feature_vector = np.array([
             feat_mean, 
             feat_std, 
             feat_max, 
-            sobel_feature, 
+            entropy_feature, 
             laplacian_feature
         ])
         features_list.append(feature_vector)
@@ -115,60 +117,40 @@ np.savez("DSM_features_moving_window.npz", features=features_array,
          window_centers_time=window_centers_time,
          window_centers_distance=window_centers_distance)
 
-# ==== Anomaly Detection ====
-model = IsolationForest(contamination=CONTAMINATION_RATE, random_state=42)
-model.fit(features_array)
-scores = model.decision_function(features_array)
-anomalous_idx = np.where(scores < 0.03)[0]
+# ==== Anomaly Detection using LOF ====
+lof = LocalOutlierFactor(n_neighbors=150, novelty=False)
+y_pred = lof.fit_predict(features_array)
+lof_scores = -lof.negative_outlier_factor_  
 
 # ==== Create 2D Anomaly Map ====
-anomaly_map = scores.reshape(num_windows_time, num_windows_channel)
-
-binary_mask = np.zeros(anomaly_map.shape, dtype=int)
-binary_mask[anomaly_map < 0.03] = 1
-
-labels = label(binary_mask, connectivity=2)
-filtered_anomalies = np.zeros_like(binary_mask)
-for region in regionprops(labels):
-    minr, minc, maxr, maxc = region.bbox
-    if (maxc - minc > 3) or (maxr - minr > 3):
-        continue
-    filtered_anomalies[labels == region.label] = 1
-
-anomalous_idx = np.where(filtered_anomalies.flatten() == 1)[0]
-
-time_min = min(window_centers_time) - (WINDOW_SIZE_TIME / 2) * time_per_sample
-time_max = max(window_centers_time) + (WINDOW_SIZE_TIME / 2) * time_per_sample
-distance_min = min(window_centers_distance) - (WINDOW_SIZE_CHANNEL / 2) * distance_per_channel
-distance_max = max(window_centers_distance) + (WINDOW_SIZE_CHANNEL / 2) * distance_per_channel
-
-# ==== Plotting ====
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10), sharex=False)
-
-im = ax1.imshow(anomaly_map, aspect='auto', cmap='gray',
-                extent=[distance_min, distance_max, time_max, time_min],
-                vmax=0.16, vmin=0)
-ax1.set_ylabel("Time (sec)")
-
-anomaly_distances = np.array([window_centers_distance[i] for i in anomalous_idx])
-anomaly_times = np.array([window_centers_time[i] for i in anomalous_idx])
-ax1.scatter(anomaly_distances, anomaly_times, color='red', edgecolors='k')
-
-ax2.imshow(img_gray, aspect='auto', cmap=COLORMAP_WATERFALL,
-           extent=[0, TOTAL_DISTANCE_KM, TOTAL_DURATION_SEC, 0])
-ax2.set_xlabel("Distance (km)")
-ax2.set_ylabel("Time (sec)")
-ax2.set_title("Original DAS Waterfall")
-
-plt.tight_layout()
-#plt.show()
+anomaly_map = lof_scores.reshape(num_windows_time, num_windows_channel)
+threshold = np.percentile(lof_scores, 99)  
+anomalous_idx = np.where(lof_scores > threshold)[0]
 
 # ==== Write Anomaly Log ====
+anomaly_distances = np.array([window_centers_distance[i] for i in anomalous_idx])
+anomaly_times = np.array([window_centers_time[i] for i in anomalous_idx])
 with open('anomaly_points.log', 'w') as f:
     f.write("Anomaly Points Log (Distance_km, Time_sec)\n")
     f.write(f"Starting Time: {dt.strftime('%Y%m%d_%H%M%S')}\n")
     f.write("=" * 40 + "\n")
     for d, t in zip(anomaly_distances, anomaly_times):
         f.write(f"{d:.4f}, {t:.2f}\n")
+
+# ==== Plotting ====
+time_min = min(window_centers_time) - (WINDOW_SIZE_TIME / 2) * time_per_sample
+time_max = max(window_centers_time) + (WINDOW_SIZE_TIME / 2) * time_per_sample
+distance_min = min(window_centers_distance) - (WINDOW_SIZE_CHANNEL / 2) * distance_per_channel
+distance_max = max(window_centers_distance) + (WINDOW_SIZE_CHANNEL / 2) * distance_per_channel
+
+fig = plt.figure(figsize=(14, 5))
+plt.imshow(img_gray, aspect='auto', cmap=COLORMAP_WATERFALL,
+           extent=[0, TOTAL_DISTANCE_KM, TOTAL_DURATION_SEC, 0])
+plt.scatter(anomaly_distances, anomaly_times, color='red', edgecolors='k')
+plt.xlabel("Distance (km)")
+plt.ylabel("Time (sec)")
+plt.title("Original DAS Waterfall")
+plt.tight_layout()
+plt.show()
 
 # %%
