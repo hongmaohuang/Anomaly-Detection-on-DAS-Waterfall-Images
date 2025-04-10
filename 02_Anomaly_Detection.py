@@ -28,8 +28,6 @@ DURATION_WATERFALL = 17
 # (in minutes)
 DATA_DIR = Path(f'./DAS_data/{DATA_DATE}/waveforms')
 
-
-
 # Moving window parameters
 WINDOW_SIZE_TIME = 10      # Window height along time axis (pixels)
 WINDOW_SIZE_CHANNEL = 3    # Window width along distance axis (pixels)
