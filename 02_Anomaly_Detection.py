@@ -10,6 +10,8 @@ from matplotlib.font_manager import FontProperties
 from datetime import datetime
 from sklearn.ensemble import IsolationForest
 from skimage.measure import label, regionprops
+import xdas
+from pathlib import Path
 
 # ==== CUSTOMIZABLE PARAMETERS ====
 # Data settings
@@ -23,10 +25,16 @@ FONT_PATH = './Helvetica.ttf'
 TITLE_FONT_PATH = './Helvetica_Bold.ttf'
 FONT_SIZE = 12
 TITLE_FONT_SIZE = 18
+DATA_DIR = Path('./DAS_data/20250331/waveforms')
+
+waveform_files = list(DATA_DIR.glob('*.hdf5'))
+data = xdas.open_mfdataarray(str(waveform_files[0]), engine="asn")
+max_distance = np.max(data.coords['distance'].values)
 
 # Constants
 TOTAL_DURATION_SEC = 17 * 60
-TOTAL_DISTANCE_KM = 28.086
+# depends on your DAS waterfall image
+TOTAL_DISTANCE_KM = max_distance/1000
 
 # Moving window parameters
 WINDOW_SIZE_TIME = 10      # Window height along time axis (pixels)
@@ -153,7 +161,7 @@ ax2.set_ylabel("Time (sec)")
 ax2.set_title("Original DAS Waterfall")
 
 plt.tight_layout()
-plt.show()
+#plt.show()
 
 # ==== Write Anomaly Log ====
 with open('anomaly_points.log', 'w') as f:

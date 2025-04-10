@@ -44,7 +44,9 @@ ds_all_xr_sorted = [
                  dims=['time', 'distance'])
     for ds in ds_all_sorted
 ]
+
 ds_concat_xr = xr.concat(ds_all_xr_sorted, dim='time')
+ds_concat_xr['distance'] = ds_concat_xr['distance'] / 1000
 
 # ===== Optional: Save and load concatenated waveform data via netCDF =====
 # ds_concat_xr.to_netcdf(NETCDF_FILENAME, engine='h5netcdf')
@@ -56,6 +58,7 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 # ===== Convert starting time string to a datetime object =====
 starting_time = datetime.strptime(starting_time_str, '%Y%m%d_%H%M%S')
 
+# %%
 # ===== Process each anomaly =====
 for i, (_, anomaly) in enumerate(df.iterrows()):
     print(f"Processing anomaly {i+1} of {len(df)}")
@@ -85,7 +88,7 @@ for i, (_, anomaly) in enumerate(df.iterrows()):
     # Trim the waveform to a defined TIME_SPAN starting at the anomaly time
     anomaly_start = obspy.UTCDateTime(anomaly_time)
     anomaly_end = anomaly_start + TIME_SPAN
-    print(f"Start time: {anomaly_start}, End time: {anomaly_end}")
+    #print(f"Start time: {anomaly_start}, End time: {anomaly_end}")
     anomaly_trace.trim(starttime=anomaly_start, endtime=anomaly_end)
 
     # Save the trimmed anomaly waveform as a miniSEED file
