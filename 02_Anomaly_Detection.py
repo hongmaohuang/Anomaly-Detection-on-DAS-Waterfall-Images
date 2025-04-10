@@ -17,7 +17,6 @@ from pathlib import Path
 # Data settings
 DATA_DATE = "20250331"
 TARGET_IDX = 0
-CONTAMINATION_RATE = 0.03
 COLORMAP_WATERFALL = "jet"
 
 # Font settings (optional)
