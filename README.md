@@ -1,5 +1,4 @@
-# DAS Data Processing and Analysis Project
-# This README is generated using ChatGPT
+# Anomaly Detection on DAS Waterfall Images
 Readme is just on the way, stay tuned!
 
 ---
