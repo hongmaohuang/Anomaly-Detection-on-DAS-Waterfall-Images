@@ -11,6 +11,8 @@ import pandas as pd
 from pathlib import Path
 from PIL import Image
 import xdas
+from datetime import timezone
+os.chdir(Path(__file__).resolve().parent)
 
 # === Config ===
 data_directory = "../../Inputs/DAS_data/20250331/waveforms"
@@ -108,5 +110,10 @@ for fname in os.listdir(output_directory):
     img_path = os.path.join(output_directory, fname)
     image = Image.open(img_path)
     img_array = np.array(image)
-    npz_name = os.path.splitext(fname)[0] + ".npz"
+
+    parts = fname.split("_")
+    date_str = parts[3]          
+    time_str = parts[4].split(".")[0]  
+    npz_name = f"Waterfall_RMS_{date_str}_{time_str}_utc.npz"
+
     np.savez(os.path.join(npz_output_dir, npz_name), waterfall=img_array)
