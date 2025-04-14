@@ -1,5 +1,6 @@
 # %%
 # Simulate waterfall images from OptoDAS data in RMS and save as both PNG and NPZ
+# Optional Using!!
 
 import matplotlib
 matplotlib.use('Agg')  # Use non-GUI backend for safe plotting in scripts
