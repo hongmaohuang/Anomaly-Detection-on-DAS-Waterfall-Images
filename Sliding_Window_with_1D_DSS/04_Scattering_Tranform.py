@@ -38,7 +38,7 @@ starttime = UTCDateTime("2025-01-01T00:00:00")
 
 header = {
     'npts': len(mean_values),
-    'sampling_rate': network.sampling_rate,  # 每秒一個點，代表這些是 index-based 的序列
+    'sampling_rate': network.sampling_rate, 
     'starttime': starttime
 }
 
@@ -59,8 +59,8 @@ segment_dist_km = network.bins / network.sampling_rate
 print("each segment distance is: ", segment_dist_km)
 overlap = 0.2
 
-segment_len_samples = int(segment_dist_km * network.sampling_rate)  # segment 長度（以 sample 為單位）
-step_samples = int(segment_len_samples * (1 - overlap))  # sliding 的步長（以 sample 為單位）
+segment_len_samples = int(segment_dist_km * network.sampling_rate)  # length of segment (samples)
+step_samples = int(segment_len_samples * (1 - overlap))  # length of steps (samples)
 total_segments = (len(tr_mean.data) - segment_len_samples) // step_samples + 1
 
 segments = []

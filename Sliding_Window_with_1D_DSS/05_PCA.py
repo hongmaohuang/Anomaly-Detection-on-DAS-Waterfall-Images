@@ -15,8 +15,6 @@ OUT_DIR_scattering = Path("../../Outputs/scattering_coefficients")
 OUT_DIR_pca = Path("../../Outputs/pca_ica")
 OUT_DIR_pca.mkdir(parents=True, exist_ok=True)
 
-
-
 # Load data from file
 with np.load(f"{OUT_DIR_scattering}/scattering_coefficients.npz", allow_pickle=True) as data:
     order_1 = data["order_1"]

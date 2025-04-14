@@ -36,14 +36,13 @@ one_hot[np.arange(len(distance)), predictions] = 1
 fig, ax = plt.subplots(figsize=(12, 6))
 
 colors = plt.cm.viridis(np.linspace(0, 1, N_CLUSTERS))
-spacing = 2.0  # ← 調整這個值可以控制每層之間的間隔
+spacing = 2.0 
 
 for i in range(N_CLUSTERS):
     detection_rate = np.convolve(one_hot[:, i], np.ones(SMOOTH_KERNEL), mode="same") / SMOOTH_KERNEL
     baseline = i * spacing
     ax.fill_between(distance, baseline, detection_rate + baseline, color=colors[i], alpha=0.7, label=f"Cluster {i}")
 
-# 美化時間軸
 ax.set_xlim(distance[0], distance[-1])
 
 ax.set_xlabel("Distance")
