@@ -1,52 +1,31 @@
-# %%
 import os
 import pickle
 import numpy as np
-import matplotlib.pyplot as plt
 from pathlib import Path
 from scatseisnet import ScatteringNetwork
-import xdas  # Make sure this package is installed
+import xdas
+import config
+os.makedirs(config.WAVELET_FOLDER, exist_ok=True)
 
-# Change to script directory
-os.chdir(Path(__file__).resolve().parent)
-
-# === Basic settings ===
-DURATION_WATERFALL_MIN = 1
-DATA_DATE = "20250331"
-DATA_DIR = Path(f"../../Inputs/DAS_data/{DATA_DATE}/waveforms")
-FEATURES_DIR = Path("../../Outputs/Features")
-OUT_DIR = Path("../../Outputs/wavelets")
-WINDOW_SIZE_CHANNEL = 3
-STEP_CHANNEL = 1
-
-# === Check if data exists ===
-waveform_files = list(DATA_DIR.glob("*.hdf5"))
-feature_files = sorted(FEATURES_DIR.glob("features_*.npz"))
-
-# === Compute distance and duration ===
+# === Extract Distance and Duration Information ===
+waveform_files = list(Path(config.DAS_WAVEFORM_PATH).glob("*.hdf5"))
+feature_files = sorted(Path(config.FEATURES_FOLDER).glob("features_*.npz"))
 data = xdas.open_mfdataarray(str(waveform_files[0]), engine="asn")
-TOTAL_DISTANCE_KM = np.max(data.coords['distance'].values) / 1000
-
-# === Load features and calculate parameters ===
+TOTAL_DISTANCE_KM = np.max(data.coords["distance"].values) / 1000
 features = np.load(feature_files[0])["features"]
 num_samples = features.shape[0]
-
-segment_distance_km = 0.04
 sampling_rate_per_km = num_samples / TOTAL_DISTANCE_KM
-samples_per_segment = int(segment_distance_km * sampling_rate_per_km)
+samples_per_segment = int(config.SEGMENT_DISTANCE * sampling_rate_per_km)
 
 # === Create the Scattering Network ===
 network = ScatteringNetwork(
-    {"octaves": 8, "resolution": 6, "quality": 1},
-    {"octaves": 8, "resolution": 2, "quality": 1},
+    {"octaves": config.OCTAVES_1, "resolution": config.RESOLUTION_1, "quality": config.QUALITY_1},
+    {"octaves": config.OCTAVES_2, "resolution": config.RESOLUTION_2, "quality": config.QUALITY_2},
     bins=samples_per_segment,
     sampling_rate=sampling_rate_per_km,
 )
-print(network)
 
-# === Save the network ===
-OUT_DIR.mkdir(parents=True, exist_ok=True)
-with open(OUT_DIR / "scattering_network.pickle", "wb") as f:
+with open(Path(config.WAVELET_FOLDER) / "scattering_network.pickle", "wb") as f:
     pickle.dump(network, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 '''
