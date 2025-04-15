@@ -3,19 +3,19 @@ import pickle
 import numpy as np
 from pathlib import Path
 from scatseisnet import ScatteringNetwork
-import xdas
 import config
-os.makedirs(config.WAVELET_FOLDER, exist_ok=True)
+import shutil
+
+if os.path.exists(config.WAVELET_FOLDER):
+    shutil.rmtree(config.WAVELET_FOLDER)
+os.makedirs(config.WAVELET_FOLDER)
 
 # === Extract Distance and Duration Information ===
-waveform_files = list(Path(config.DAS_WAVEFORM_PATH).glob("*.hdf5"))
 feature_files = sorted(Path(config.FEATURES_FOLDER).glob("features_*.npz"))
-data = xdas.open_mfdataarray(str(waveform_files[0]), engine="asn")
-TOTAL_DISTANCE_KM = np.max(data.coords["distance"].values) / 1000
 features = np.load(feature_files[0])["features"]
 num_samples = features.shape[0]
-sampling_rate_per_km = num_samples / TOTAL_DISTANCE_KM
-samples_per_segment = int(config.SEGMENT_DISTANCE * sampling_rate_per_km)
+sampling_rate_per_km = num_samples / config.TOTAL_DISTANCE_KM
+samples_per_segment = max(1, round(config.SEGMENT_DISTANCE * sampling_rate_per_km))
 
 # === Create the Scattering Network ===
 network = ScatteringNetwork(

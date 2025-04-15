@@ -2,23 +2,18 @@ import os
 import glob
 import numpy as np
 from datetime import datetime
-import xdas
-from pathlib import Path
 import config 
-os.makedirs(config.FEATURES_FOLDER, exist_ok=True)
+import shutil
+
+if os.path.exists(config.FEATURES_FOLDER):
+    shutil.rmtree(config.FEATURES_FOLDER)
+os.makedirs(config.FEATURES_FOLDER)
 
 # ==== Load All Waterfall Images ====
 file_list = sorted(glob.glob(f'{config.WATERFALL_NPZ_FOLDER}/*.npz'))
 
-# ==== Duration and distance ====
-waveform_files = list(Path(config.DAS_WAVEFORM_PATH).glob('*.hdf5'))
-data = xdas.open_mfdataarray(str(waveform_files[0]), engine="asn")
-max_distance = np.max(data.coords['distance'].values)
-TOTAL_DURATION_SEC = config.DURATION_WATERFALL * 60
-TOTAL_DISTANCE_KM = max_distance / 1000
-
 for file in file_list:
-    basename = os.path.basename(file)
+    basename = os.path.splitext(os.path.basename(file))[0]
     dt_str = basename.split('_')[2] + basename.split('_')[3]
     dt = datetime.strptime(dt_str, "%Y%m%d%H%M%S")
     print(f"Processing {dt.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -26,13 +21,13 @@ for file in file_list:
     img_gray = data["waterfall"].mean(axis=2)  
     DAS_data = img_gray
     num_time_samples, num_channels = DAS_data.shape
-    time_per_sample = TOTAL_DURATION_SEC / num_time_samples
-    distance_per_channel = TOTAL_DISTANCE_KM / num_channels
+    time_per_sample = config.TOTAL_DURATION_SEC / num_time_samples
+    distance_per_channel = config.TOTAL_DISTANCE_KM / num_channels
     if file == file_list[0]:
         print(f"Time per Sample: {time_per_sample:.3f} sec")
         print(f"Distance per Channel: {distance_per_channel:.2f} km")
-        print(f"Total Duration: {TOTAL_DURATION_SEC:.2f} sec")
-        print(f"Total Distance: {TOTAL_DISTANCE_KM:.2f} km")
+        print(f"Total Duration: {config.TOTAL_DURATION_SEC:.2f} sec")
+        print(f"Total Distance: {config.TOTAL_DISTANCE_KM:.2f} km")
 
     # ==== Extract Features across Distance ====
     features_list = []

@@ -7,7 +7,11 @@ import obspy
 from pathlib import Path
 import os
 import config
-os.makedirs(config.CLUSTERING_RESULTS_FOLDER, exist_ok=True)
+import shutil
+
+if os.path.exists(config.CLUSTERING_RESULTS_FOLDER):
+    shutil.rmtree(config.CLUSTERING_RESULTS_FOLDER)
+os.makedirs(config.CLUSTERING_RESULTS_FOLDER)
 
 with np.load(f"{Path(config.PCA_ICA_FOLDER)}/independent_components.npz", allow_pickle=True) as data:
     features = data["features"]
@@ -39,6 +43,6 @@ ax.set_xlabel("Distance")
 ax.set_ylabel("Cluster index")
 ax.set_yticks([i * spacing for i in range(config.N_CLUSTERS)])
 ax.set_yticklabels([f"Cluster {i}" for i in range(config.N_CLUSTERS)])
-ax.legend(title="Clusters")
+ax.legend(loc='lower right', title="Clusters")
 plt.tight_layout()
 plt.savefig(f"{Path(config.CLUSTERING_RESULTS_FOLDER)}/clustering_result.png", dpi=300)
