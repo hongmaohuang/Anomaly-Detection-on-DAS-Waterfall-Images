@@ -16,7 +16,7 @@ for file in file_list:
     basename = os.path.splitext(os.path.basename(file))[0]
     dt_str = basename.split('_')[2] + basename.split('_')[3]
     dt = datetime.strptime(dt_str, "%Y%m%d%H%M%S")
-    print(f"Processing {dt.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"\nProcessing {dt.strftime('%Y-%m-%d %H:%M:%S')}\n")
     data = np.load(file)
     img_gray = data["waterfall"].mean(axis=2)  
     DAS_data = img_gray
@@ -25,14 +25,15 @@ for file in file_list:
     distance_per_channel = config.TOTAL_DISTANCE_KM / num_channels
     if file == file_list[0]:
         print(f"Time per Sample: {time_per_sample:.3f} sec")
-        print(f"Distance per Channel: {distance_per_channel:.2f} km")
+        print(f"Distance per Channel: {distance_per_channel*1000:.5f} m")
         print(f"Total Duration: {config.TOTAL_DURATION_SEC:.2f} sec")
-        print(f"Total Distance: {config.TOTAL_DISTANCE_KM:.2f} km")
+        print(f"Total Distance: {config.TOTAL_DISTANCE_KM:.2f} km\n")
 
     # ==== Extract Features across Distance ====
     features_list = []
     window_centers_distance = []
-    num_windows_channel = (num_channels - config.WINDOW_SIZE_CHANNEL) // config.STEP_CHANNEL + 1
+    print(f"Extracting features every {config.STEP_CHANNEL} pixels with a window size of {config.WINDOW_SIZE_CHANNEL} pixels\n")
+    
     for j in range(0, num_channels - config.WINDOW_SIZE_CHANNEL + 1, config.STEP_CHANNEL):
         window = DAS_data[:, j:j+config.WINDOW_SIZE_CHANNEL]
         feat_mean = window.mean()
