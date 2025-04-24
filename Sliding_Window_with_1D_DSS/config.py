@@ -33,6 +33,7 @@ data = xdas.open_mfdataarray(str(waveform_files[0]), engine="asn")
 max_distance = np.max(data.coords['distance'].values)
 # the waveform data is just for extracting the distance, no need to load the entire dataset
 TOTAL_DISTANCE_KM = max_distance / 1000
+# If you have the extact distance, you can set it directly here
 TOTAL_DURATION_SEC = DURATION_WATERFALL * 60
 
 # ==== Sliding Window Parameters ==== #
@@ -42,19 +43,31 @@ STEP_CHANNEL = 1
 # ==== Scattering Network Parameters ==== #
 SEGMENT_DISTANCE = 0.04  # in km
 SEGMENT_OVERLAP = 0.2  # as fraction (e.g., 0.2 = 20% overlap)
-OCTAVES_1 = 8
-RESOLUTION_1 = 6
+OCTAVES_1 = 6
+RESOLUTION_1 = 10
 QUALITY_1 = 1
-OCTAVES_2 = 8
-RESOLUTION_2 = 2
+OCTAVES_2 = 4
+RESOLUTION_2 = 8
 QUALITY_2 = 1
 
 # ==== PCA and ICA ==== #
 PCA_COMPONENTS = 10
-ICA_COMPONENTS = 4 # Could be estimated using PCA Result 
+ICA_COMPONENTS = 2 # Could be estimated using PCA Result 
 
-# ==== KMeans Parameters ==== #
-N_CLUSTERS = 6
+# ==== Clustering Parameters ==== #
+CLUSTER_METHOD = "agglomerative"   # "kmeans", "gmm", "dbscan", "agglomerative"
+KMEANS_CLUSTERS = 5
+GMM_N_COMPONENTS = 4
+GMM_COVARIANCE_TYPE = "full"
+DBSCAN_EPS = 0.6
+DBSCAN_MIN_SAMPLES = 50
+AGG_N_CLUSTERS = 5
+AGG_LINKAGE = "ward"  # "ward", "complete", "average", "single"
 
 # ==== Visualization Parameters ==== #
 SMOOTH_KERNEL = 20
+
+
+
+
+
