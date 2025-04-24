@@ -18,6 +18,16 @@ sampling_rate_per_km = num_samples / config.TOTAL_DISTANCE_KM
 samples_per_segment = max(1, round(config.SEGMENT_DISTANCE * sampling_rate_per_km))
 
 # === Create the Scattering Network ===
+
+print(f"You are using the scattering network with the following parameters:\n"
+      f"  - Number of octaves (bank 1): {config.OCTAVES_1}\n"
+      f"  - Resolution (bank 1): {config.RESOLUTION_1}\n"
+      f"  - Quality (bank 1): {config.QUALITY_1}\n"
+      f"  - Number of octaves (bank 2): {config.OCTAVES_2}\n"
+      f"  - Resolution (bank 2): {config.RESOLUTION_2}\n"
+      f"  - Quality (bank 2): {config.QUALITY_2}\n"
+)
+
 network = ScatteringNetwork(
     {"octaves": config.OCTAVES_1, "resolution": config.RESOLUTION_1, "quality": config.QUALITY_1},
     {"octaves": config.OCTAVES_2, "resolution": config.RESOLUTION_2, "quality": config.QUALITY_2},
