@@ -14,34 +14,34 @@ network = pickle.load(open(f"{config.WAVELET_FOLDER}/scattering_network.pickle",
 file = sorted(Path(config.FEATURES_FOLDER).glob("features_*.npz"))
 data = np.load(file[0])
 features_array = data["features"] 
-mean_values = features_array[:, 0]
-std_values = features_array[:, 1]
-max_values = features_array[:, 2]
+feature1_values = features_array[:, 0]
+feature2_values = features_array[:, 1]
+feature3_values = features_array[:, 2]
 
 # Fake the start time
 starttime = UTCDateTime("2025-01-01T00:00:00")
 header = {
-    'npts': len(mean_values),
+    'npts': len(feature1_values),
     'sampling_rate': network.sampling_rate, 
     'starttime': starttime
 }
 # Traces
-tr_mean = Trace(data=np.array(mean_values, dtype=np.float32), header=header.copy())
-tr_std = Trace(data=np.array(std_values, dtype=np.float32), header=header.copy())
-tr_max = Trace(data=np.array(max_values, dtype=np.float32), header=header.copy())
-tr_mean.stats.channel = "MEAN"
-tr_std.stats.channel = "STD"
-tr_max.stats.channel = "MAX"
-feature_stream = Stream(traces=[tr_mean, tr_std, tr_max])
+tr_1 = Trace(data=np.array(feature1_values, dtype=np.float32), header=header.copy())
+tr_2 = Trace(data=np.array(feature2_values, dtype=np.float32), header=header.copy())
+tr_3 = Trace(data=np.array(feature3_values, dtype=np.float32), header=header.copy())
+tr_1.stats.channel = "Feature_1"
+tr_2.stats.channel = "Feature_2"
+tr_3.stats.channel = "Feature_3"
+feature_stream = Stream(traces=[tr_1, tr_2, tr_3])
 
 # Extract segment length (from any layer)
-distance_per_sample = config.TOTAL_DISTANCE_KM / len(tr_mean.data)
+distance_per_sample = config.TOTAL_DISTANCE_KM / len(tr_1.data)
 segment_len_samples = network.bins
 step_samples = int(segment_len_samples * (1 - config.SEGMENT_OVERLAP))
 
 segments = []
 distance_all = []
-for i in range(0, len(tr_mean.data) - segment_len_samples + 1, step_samples):
+for i in range(0, len(tr_1.data) - segment_len_samples + 1, step_samples):
     seg = [trace.data[i:i+segment_len_samples] for trace in feature_stream]
     segments.append(np.array(seg))
     distance_all.append(i * distance_per_sample)
