@@ -6,7 +6,7 @@ import shutil
 
 # ==== Inputs ==== #
 DAS_DATA_PATH = f'../../Inputs/'
-DAS_WATERFALL_PATH = os.path.join(DAS_DATA_PATH, "waterfall_images_17min")
+DAS_WATERFALL_PATH = os.path.join(DAS_DATA_PATH, "waterfall_images_1min")
 DAS_WAVEFORM_PATH = os.path.join(DAS_DATA_PATH, "waveforms")
 
 # ==== Outputs ==== #
@@ -19,7 +19,7 @@ PCA_ICA_FOLDER = os.path.join(OUTPUT_PATH, "pca_ica")
 CLUSTERING_RESULTS_FOLDER = os.path.join(OUTPUT_PATH, "clustering_results")
 
 # ==== Image Crops ==== #
-CROP_OR_NOT = 'YES'  # 'YES' or 'NO'
+CROP_OR_NOT = 'NO'  # 'YES' or 'NO'
 CROP_TOP = 160
 CROP_BOTTOM = 696
 CROP_LEFT = 70
@@ -27,7 +27,7 @@ CROP_RIGHT = 1789
 # OptoDAS Default
 
 # ==== Waterfall Parameters ==== #
-DURATION_WATERFALL = 17  # in minutes
+DURATION_WATERFALL = 1  # in minutes
 waveform_files = list(Path(DAS_WAVEFORM_PATH).glob('*.hdf5'))
 data = xdas.open_mfdataarray(str(waveform_files[0]), engine="asn") 
 max_distance = np.max(data.coords['distance'].values)
@@ -37,8 +37,8 @@ TOTAL_DISTANCE_KM = max_distance / 1000
 TOTAL_DURATION_SEC = DURATION_WATERFALL * 60
 
 # ==== Sliding Window Parameters ==== #
-WINDOW_SIZE_CHANNEL = 3
-STEP_CHANNEL = 1
+WINDOW_SIZE_CHANNEL = 5
+STEP_CHANNEL = 2
 
 # ==== Scattering Network Parameters ==== #
 SEGMENT_DISTANCE = 0.04  # in km
@@ -51,8 +51,8 @@ RESOLUTION_2 = 8
 QUALITY_2 = 1
 
 # ==== PCA and ICA ==== #
-PCA_COMPONENTS = 10
-ICA_COMPONENTS = 2 # Could be estimated using PCA Result 
+PCA_COMPONENTS = 2
+ICA_COMPONENTS = 3 # Could be estimated using PCA Result 
 
 # ==== Clustering Parameters ==== #
 CLUSTER_METHOD = "agglomerative"   # "kmeans", "gmm", "dbscan", "agglomerative"
@@ -62,7 +62,7 @@ GMM_COVARIANCE_TYPE = "full"
 DBSCAN_EPS = 0.6
 DBSCAN_MIN_SAMPLES = 50
 AGG_N_CLUSTERS = 5
-AGG_LINKAGE = "ward"  # "ward", "complete", "average", "single"
+AGG_LINKAGE = "single"  # "ward", "complete", "average", "single"
 
 # ==== Visualization Parameters ==== #
 SMOOTH_KERNEL = 20
