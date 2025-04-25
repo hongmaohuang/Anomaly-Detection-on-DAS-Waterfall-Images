@@ -5,13 +5,12 @@ from pathlib import Path
 import shutil
 
 # ==== Inputs ==== #
-DATE = "20250331"
-DAS_DATA_PATH = f'../../Inputs/{DATE}'
-DAS_WATERFALL_PATH = os.path.join(DAS_DATA_PATH, "waterfall_images_1min")
+DAS_DATA_PATH = f'../../Inputs/'
+DAS_WATERFALL_PATH = os.path.join(DAS_DATA_PATH, "waterfall_images_17min")
 DAS_WAVEFORM_PATH = os.path.join(DAS_DATA_PATH, "waveforms")
 
 # ==== Outputs ==== #
-OUTPUT_PATH = f'../../Outputs/{DATE}'
+OUTPUT_PATH = f'../../Outputs/'
 WATERFALL_NPZ_FOLDER = os.path.join(OUTPUT_PATH, "waterfall_npz")
 FEATURES_FOLDER = os.path.join(OUTPUT_PATH, "features")
 WAVELET_FOLDER = os.path.join(OUTPUT_PATH, "wavelets")
@@ -20,14 +19,15 @@ PCA_ICA_FOLDER = os.path.join(OUTPUT_PATH, "pca_ica")
 CLUSTERING_RESULTS_FOLDER = os.path.join(OUTPUT_PATH, "clustering_results")
 
 # ==== Image Crops ==== #
-CROP_OR_NOT = 'NO'  # 'YES' or 'NO'
+CROP_OR_NOT = 'YES'  # 'YES' or 'NO'
 CROP_TOP = 160
 CROP_BOTTOM = 696
 CROP_LEFT = 70
 CROP_RIGHT = 1789
+# OptoDAS Default
 
 # ==== Waterfall Parameters ==== #
-DURATION_WATERFALL = 1  # in minutes
+DURATION_WATERFALL = 17  # in minutes
 waveform_files = list(Path(DAS_WAVEFORM_PATH).glob('*.hdf5'))
 data = xdas.open_mfdataarray(str(waveform_files[0]), engine="asn") 
 max_distance = np.max(data.coords['distance'].values)
