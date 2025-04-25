@@ -36,10 +36,10 @@ for file in file_list:
     
     for j in range(0, num_channels - config.WINDOW_SIZE_CHANNEL + 1, config.STEP_CHANNEL):
         window = DAS_data[:, j:j+config.WINDOW_SIZE_CHANNEL]
-        feat_mean = window.mean()
-        feat_std = window.std()
-        feat_max = window.max()
-        feature_vector = np.array([feat_mean, feat_std, feat_max])
+        feat_1 = np.median(window)
+        feat_2 = window.std()
+        feat_3 = np.percentile(window, 75)
+        feature_vector = np.array([feat_1, feat_2, feat_3])
         features_list.append(feature_vector)
         center_distance = (j + config.WINDOW_SIZE_CHANNEL / 2) * distance_per_channel
         window_centers_distance.append(center_distance)
