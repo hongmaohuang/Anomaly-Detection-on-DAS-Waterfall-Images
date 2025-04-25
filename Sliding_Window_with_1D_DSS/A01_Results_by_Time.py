@@ -5,7 +5,7 @@ import glob
 import config
 
 # Please make sure you also update the parameters in config.py !
-all_files = glob.glob('/home/hmhuang/Work/Hualien_DAS_Monitoring/waterfall_images_17min_0423/*.png')
+all_files = glob.glob('/home/hmhuang/Work/Hualien_DAS_Monitoring/waterfall_images_1min/*.png')
 
 def extract_datetime(file_path):
     basename = os.path.basename(file_path)
@@ -18,6 +18,14 @@ files_sorted = sorted(all_files, key=extract_datetime)
 
 for file_path in files_sorted:
     print(f"\nProcessing: {file_path}")
+    date_part = os.path.basename(file_path).split('_')[2]
+    time_part = os.path.basename(file_path).split('_')[3]
+    output_filename = f"clustering_result_{date_part}_{time_part}_{config.DURATION_WATERFALL}_min.png"
+    output_path = os.path.join(config.CLUSTERING_RESULTS_FOLDER, output_filename)
+
+    if os.path.exists(output_path):
+        print(f"Skipping {file_path} → already processed!")
+        continue
 
     # Make sure only one file is in the input folder
     if os.path.exists(config.DAS_WATERFALL_PATH):
