@@ -16,9 +16,9 @@ from datetime import timezone
 os.chdir(Path(__file__).resolve().parent)
 
 # === Config ===
-data_directory = "../../Inputs/DAS_data/20250331/waveforms"
+data_directory = "../../Inputs/waveforms"
 output_directory = "../../Outputs/Waterfall_Images"
-output_npz_subfolder = "waterfall_npz"
+#output_npz_subfolder = "waterfall_npz"
 
 files_per_plot = 6
 figure_size = (12, 6)
@@ -101,6 +101,7 @@ for i in range(total_batches):
     fig.savefig(output_path, dpi=dpi, bbox_inches='tight', pad_inches=0)
     plt.close(fig)
 
+''' 
 # Save as NPZ
 npz_output_dir = os.path.join(output_directory, output_npz_subfolder)
 Path(npz_output_dir).mkdir(parents=True, exist_ok=True)
@@ -118,3 +119,4 @@ for fname in os.listdir(output_directory):
     npz_name = f"Waterfall_RMS_{date_str}_{time_str}_utc.npz"
 
     np.savez(os.path.join(npz_output_dir, npz_name), waterfall=img_array)
+'''
