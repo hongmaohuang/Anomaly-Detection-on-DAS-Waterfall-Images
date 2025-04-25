@@ -5,7 +5,7 @@ import glob
 import config
 
 # Please make sure you also update the parameters in config.py !
-all_files = glob.glob('/home/hmhuang/Work/Hualien_DAS_Monitoring/waterfall_images_1min/*.png')
+all_files = glob.glob('../../waterfall_images_1min/*.png')
 
 def extract_datetime(file_path):
     basename = os.path.basename(file_path)
