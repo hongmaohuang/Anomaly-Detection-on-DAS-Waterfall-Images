@@ -9,9 +9,9 @@ import obspy
 import config
 import glob
 
-if os.path.exists(config.CLUSTERING_RESULTS_FOLDER):
-    shutil.rmtree(config.CLUSTERING_RESULTS_FOLDER)
-os.makedirs(config.CLUSTERING_RESULTS_FOLDER)
+#if os.path.exists(config.CLUSTERING_RESULTS_FOLDER):
+#    shutil.rmtree(config.CLUSTERING_RESULTS_FOLDER)
+#os.makedirs(config.CLUSTERING_RESULTS_FOLDER)
 
 # load features & distance
 with np.load(f"{Path(config.PCA_ICA_FOLDER)}/independent_components.npz", allow_pickle=True) as data:
@@ -113,7 +113,6 @@ im = ax_wf.imshow(
 )
 ax_wf.set_xlabel("Distance (km)")
 ax_wf.set_ylabel("Time (sec)")
-ax_wf.set_title(f"{method.upper()} Overlay")
 ax_wf.set_ylim(total_sec, 0)
 
 # cluster Results
@@ -143,11 +142,19 @@ ax_cl.set_yticklabels([f"{i}" for i in range(n_clusters)])
 ax_cl.legend(loc="upper right", title="Clusters")
 
 plt.tight_layout()
+
+
+# Extract the date and time from the input filename
+input_files = os.listdir(config.DAS_WATERFALL_PATH)
+input_file = input_files[0]  # i.e. "Waterfall_RMS_20250331_020545.png"
+file_parts = input_file.split('_')
+date_part = file_parts[2]  # i.e. "20250331"
+time_part = file_parts[3].split('.')[0]  # i.e. "020545"
+output_filename = f"clustering_result_{date_part}_{time_part}_{config.DURATION_WATERFALL}_min.png"
+output_path = os.path.join(config.CLUSTERING_RESULTS_FOLDER, output_filename)
+
+# Save the clustering results
 plt.savefig(
-    os.path.join(
-        config.CLUSTERING_RESULTS_FOLDER,
-        f"clustering_result.png"
-    ),
+    output_path,
     dpi=300
 )
-plt.show()
