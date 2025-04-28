@@ -4,7 +4,7 @@ import numpy as np
 from datetime import datetime
 import config 
 import shutil
-
+import matplotlib.pyplot as plt
 if os.path.exists(config.FEATURES_FOLDER):
     shutil.rmtree(config.FEATURES_FOLDER)
 os.makedirs(config.FEATURES_FOLDER)
@@ -36,7 +36,26 @@ for file in file_list:
     
     for j in range(0, num_channels - config.WINDOW_SIZE_CHANNEL + 1, config.STEP_CHANNEL):
         window = DAS_data[:, j:j+config.WINDOW_SIZE_CHANNEL]
-        feat_1 = np.median(window)
+        mean_time_series = np.mean(window, axis=1)
+        #plt.plot(mean_time_series)
+        #plt.show()
+        #break
+        fft_result = np.fft.fft(mean_time_series)
+        fft_freq = np.fft.fftfreq(len(mean_time_series))  
+        half = len(fft_result) // 2
+        fft_result = fft_result[:half]
+        fft_freq = fft_freq[:half]
+        #print(np.abs(fft_result))
+        #plt.figure(figsize=(10, 6))
+        #plt.plot(fft_freq, np.abs(fft_result))  
+        #plt.xlabel('Frequency')
+        #plt.ylabel('Amplitude')
+        #plt.title('FFT of Mean Per Row')
+        #plt.grid(True)
+        #plt.tight_layout()
+        #plt.show()
+        feat_1 = max(np.abs(fft_result))
+        #feat_1 = np.median(window)
         feat_2 = window.std()
         feat_3 = np.percentile(window, 75)
         feature_vector = np.array([feat_1, feat_2, feat_3])
