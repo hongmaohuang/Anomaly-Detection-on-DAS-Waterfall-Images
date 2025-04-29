@@ -105,7 +105,7 @@ extent = [x_min, x_max, 0, total_sec]
 fig, ax_wf = plt.subplots(figsize=(12, 6))
 im = ax_wf.imshow(
     waterfall,
-    cmap='jet',
+    cmap='gray',
     aspect='auto',
     extent=extent,
     origin='lower',
