@@ -40,7 +40,6 @@ for i in range(total_batches):
     batch = all_files[i * files_per_plot : (i + 1) * files_per_plot]
     if not batch:
         continue
-
     date_str = os.path.basename(os.path.dirname(data_directory))
     file_prefix = os.path.basename(batch[0]).split('.')[0]
     output_path = os.path.join(output_directory, f"Waterfall_1_min_{date_str}_{file_prefix}.png")
