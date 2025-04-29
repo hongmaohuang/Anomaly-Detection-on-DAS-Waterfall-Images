@@ -18,7 +18,7 @@ for file in file_list:
     dt = datetime.strptime(dt_str, "%Y%m%d%H%M%S")
     print(f"\nProcessing {dt.strftime('%Y-%m-%d %H:%M:%S')}\n")
     data = np.load(file)
-    img_gray = data["waterfall"].mean(axis=2)  
+    img_gray = data["waterfall"].mean(axis=2)
     DAS_data = img_gray
     num_time_samples, num_channels = DAS_data.shape
     time_per_sample = config.TOTAL_DURATION_SEC / num_time_samples
@@ -54,8 +54,8 @@ for file in file_list:
         #plt.grid(True)
         #plt.tight_layout()
         #plt.show()
-        feat_1 = max(np.abs(fft_result))
-        #feat_1 = np.median(window)
+        #feat_1 = np.percentile(np.abs(fft_result), 75) 
+        feat_1 = np.median(window)
         feat_2 = window.std()
         feat_3 = np.percentile(window, 75)
         feature_vector = np.array([feat_1, feat_2, feat_3])
