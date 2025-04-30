@@ -6,12 +6,15 @@ import shutil
 from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering
 from sklearn.mixture import GaussianMixture
 import obspy
-import config
 import glob
+import config
 
 #if os.path.exists(config.CLUSTERING_RESULTS_FOLDER):
 #    shutil.rmtree(config.CLUSTERING_RESULTS_FOLDER)
 #os.makedirs(config.CLUSTERING_RESULTS_FOLDER)
+#if os.path.exists(config.CLUSTERING_RESULTS_FOLDER_CLUSTERS):
+#    shutil.rmtree(config.CLUSTERING_RESULTS_FOLDER_CLUSTERS)
+#os.makedirs(config.CLUSTERING_RESULTS_FOLDER_CLUSTERS)
 
 # load features & distance
 with np.load(f"{Path(config.PCA_ICA_FOLDER)}/independent_components.npz", allow_pickle=True) as data:
@@ -152,6 +155,15 @@ date_part = file_parts[2]  # i.e. "20250331"
 time_part = file_parts[3].split('.')[0]  # i.e. "020545"
 output_filename = f"clustering_result_{date_part}_{time_part}_{config.DURATION_WATERFALL}_min.png"
 output_path = os.path.join(config.CLUSTERING_RESULTS_FOLDER, output_filename)
+
+output_filename_clusters = f"clustering_result_{date_part}_{time_part}_{config.DURATION_WATERFALL}_min_clusters.npz"
+
+np.savez(
+    os.path.join(config.CLUSTERING_RESULTS_FOLDER_CLUSTERS, output_filename_clusters),
+    one_hot=one_hot,
+    predictions=predictions,
+    distance=distance
+)
 
 # Save the clustering results
 plt.savefig(
