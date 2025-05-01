@@ -175,5 +175,6 @@ np.savetxt(
     data,
     fmt=['%d', '%.3f'],              
     delimiter='\t',                  
-    header='cluster_number\tdistance_km'
+    header='cluster_number\tdistance_km',
+    comments=''
 )
