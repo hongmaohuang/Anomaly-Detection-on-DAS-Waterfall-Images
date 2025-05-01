@@ -16,7 +16,6 @@ features = np.load(feature_files[0])["features"]
 num_samples = features.shape[0]
 sampling_rate_per_km = num_samples / config.TOTAL_DISTANCE_KM
 samples_per_segment = max(1, round(config.SEGMENT_DISTANCE * sampling_rate_per_km))
-
 # === Create the Scattering Network ===
 
 print(f"You are using the scattering network with the following parameters:\n"
