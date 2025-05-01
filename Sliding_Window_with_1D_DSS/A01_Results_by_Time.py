@@ -3,6 +3,8 @@ import shutil
 import subprocess
 import glob
 import config
+import time
+start_time = time.time()   
 
 # Please make sure you also update the parameters in config.py !
 all_files = glob.glob('../../waterfall_images_1min/*.png')
@@ -47,9 +49,18 @@ for file_path in files_sorted:
 
     for script in scripts_to_run:
         print(f"Running {script}")
-        result = subprocess.run(['python', script], capture_output=True, text=True)
+        result = subprocess.run(['python', script])
         if result.returncode != 0:
             print(f"Error running {script}: {result.stderr}")
             break  
 
-print("\nAll files processed.")
+shutil.rmtree(config.WATERFALL_NPZ_FOLDER)
+shutil.rmtree(config.FEATURES_FOLDER)   
+shutil.rmtree(config.WAVELET_FOLDER)
+shutil.rmtree(config.SCATTERING_COEFFICIENTS_FOLDER)
+shutil.rmtree(config.PCA_ICA_FOLDER)
+
+elapsed_sec = time.time() - start_time  
+elapsed_min = elapsed_sec / 60  
+
+print(f"\n{len(files_sorted)} files are processed, you took {elapsed_min:.2f} min to finish them!")
