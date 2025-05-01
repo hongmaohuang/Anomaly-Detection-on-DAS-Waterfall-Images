@@ -5,6 +5,7 @@ from pathlib import Path
 from obspy import Trace, Stream, UTCDateTime
 import config
 import shutil
+import math
 
 if os.path.exists(config.SCATTERING_COEFFICIENTS_FOLDER):
     shutil.rmtree(config.SCATTERING_COEFFICIENTS_FOLDER)
@@ -37,7 +38,10 @@ feature_stream = Stream(traces=[tr_1, tr_2, tr_3])
 # Extract segment length (from any layer)
 distance_per_sample = config.TOTAL_DISTANCE_KM / len(tr_1.data)
 segment_len_samples = network.bins
-step_samples = int(segment_len_samples * (1 - config.SEGMENT_OVERLAP))
+step_samples = math.ceil(segment_len_samples * (1 - config.SEGMENT_OVERLAP))
+
+print('2nd Segment Length:', segment_len_samples)
+print('2nd Step Length:', step_samples)
 
 segments = []
 distance_all = []
