@@ -40,11 +40,11 @@ for file in file_list:
         #plt.plot(mean_time_series)
         #plt.show()
         #break
-        fft_result = np.fft.fft(mean_time_series)
-        fft_freq = np.fft.fftfreq(len(mean_time_series))  
-        half = len(fft_result) // 2
-        fft_result = fft_result[:half]
-        fft_freq = fft_freq[:half]
+        #fft_result = np.fft.fft(mean_time_series)
+        #fft_freq = np.fft.fftfreq(len(mean_time_series))  
+        #half = len(fft_result) // 2
+        #fft_result = fft_result[:half]
+        #fft_freq = fft_freq[:half]
         #print(np.abs(fft_result))
         #plt.figure(figsize=(10, 6))
         #plt.plot(fft_freq, np.abs(fft_result))  
