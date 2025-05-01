@@ -53,6 +53,7 @@ RESOLUTION_2 = 8
 QUALITY_2 = 1
 
 # ==== PCA and ICA ==== #
+RUN_PCA = "NO" # "YES" or "NO"
 PCA_COMPONENTS = 20
 ICA_COMPONENTS = 3 # Could be estimated using PCA Result 
 
