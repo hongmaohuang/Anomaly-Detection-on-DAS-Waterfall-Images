@@ -5,9 +5,11 @@ from pathlib import Path
 from scatseisnet import ScatteringNetwork
 import config
 import shutil
+import sys
 
 if os.path.exists(config.WAVELET_FOLDER):
-    shutil.rmtree(config.WAVELET_FOLDER)
+    print(f"{config.WAVELET_FOLDER} is already created. Please confirm if that fits your project.")
+    sys.exit(0)
 os.makedirs(config.WAVELET_FOLDER)
 
 # === Extract Distance and Duration Information ===
