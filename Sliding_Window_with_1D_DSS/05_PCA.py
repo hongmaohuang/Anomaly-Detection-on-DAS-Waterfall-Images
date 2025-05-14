@@ -80,7 +80,6 @@ if config.RUN_PCA == "YES":
 # PCA's n_components to a lower number for 
 # the ICA analysis. 
 #
-
 ica_model = FastICA(n_components=config.ICA_COMPONENTS, whiten="unit-variance", random_state=42)
 ica_features = ica_model.fit_transform(scattering_coefficients)
 
