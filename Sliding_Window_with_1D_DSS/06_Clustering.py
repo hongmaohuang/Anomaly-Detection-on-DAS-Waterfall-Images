@@ -8,10 +8,11 @@ from sklearn.mixture import GaussianMixture
 import obspy
 import glob
 import config
+import sys
 
 os.makedirs(config.CLUSTERING_RESULTS_FOLDER, exist_ok=True)
-os.makedirs(config.CLUSTERING_RESULTS_FOLDER_CLUSTERS, exist_ok=True)
-os.makedirs(config.CLUSTERING_RESULTS_FOLDER_CLUSTERS_DIST, exist_ok=True)
+#os.makedirs(config.CLUSTERING_RESULTS_FOLDER_CLUSTERS, exist_ok=True)
+#os.makedirs(config.CLUSTERING_RESULTS_FOLDER_CLUSTERS_DIST, exist_ok=True)
 
 # load features & distance
 with np.load(f"{Path(config.PCA_ICA_FOLDER)}/independent_components.npz", allow_pickle=True) as data:
@@ -90,13 +91,16 @@ for i, lab in enumerate(predictions):
 
 # plotting
 # 1. Load waterfall npz
-npz_folder = config.WATERFALL_NPZ_FOLDER
-npz_files  = sorted(glob.glob(os.path.join(npz_folder, '*.npz')))
-waterfall = np.load(npz_files[0])['waterfall']   # shape: (time_pix, chan_pix)
-waterfall = waterfall.mean(axis=2)
+npz_folder = Path(config.WATERFALL_NPZ_FOLDER)
+npz_files  = sorted(npz_folder.glob("*.npz"))
+waterfalls = []
+for fp in npz_files:
+    arr = np.load(fp)["waterfall"].mean(axis=2)   
+    waterfalls.append(arr)
+big_waterfall = np.concatenate(waterfalls, axis=1)
 
 # waterfall extent（
-n_time, n_chan     = waterfall.shape
+n_time, n_chan     = big_waterfall.shape
 total_sec         = config.DURATION_WATERFALL * 60
 x_min, x_max      = distance.min(), distance.max()
 extent = [x_min, x_max, 0, total_sec]
@@ -104,7 +108,7 @@ extent = [x_min, x_max, 0, total_sec]
 # DAS waterfall
 fig, ax_wf = plt.subplots(figsize=(12, 6))
 im = ax_wf.imshow(
-    waterfall,
+    big_waterfall,
     cmap='gray',
     aspect='auto',
     extent=extent,
@@ -143,38 +147,28 @@ ax_cl.legend(loc="upper right", title="Clusters")
 
 plt.tight_layout()
 
+first_start_by = 0                          # = config.TOTAL_DISTANCE_KM * (1-1)
+first_end_by   = config.TOTAL_DISTANCE_KM   # = config.TOTAL_DISTANCE_KM * 1
 
-# Extract the date and time from the input filename
-input_files = os.listdir(config.DAS_WATERFALL_PATH)
-input_file = input_files[0]  # i.e. "Waterfall_RMS_20250331_020545.png"
-file_parts = input_file.split('_')
-date_part = file_parts[2]  # i.e. "20250331"
-time_part = file_parts[3].split('.')[0]  # i.e. "020545"
-output_filename = f"clustering_result_{date_part}_{time_part}_{config.DURATION_WATERFALL}_min.png"
-output_path = os.path.join(config.CLUSTERING_RESULTS_FOLDER, output_filename)
-output_filename_clusters = f"clustering_result_{date_part}_{time_part}_{config.DURATION_WATERFALL}_min_clusters.npz"
-output_filename_clusters_dist = f"clustering_result_{date_part}_{time_part}_{config.DURATION_WATERFALL}_min_clusters_distance.log"
-# Save the clustering results
-np.savez(
-    os.path.join(config.CLUSTERING_RESULTS_FOLDER_CLUSTERS, output_filename_clusters),
-    one_hot=one_hot,
-    predictions=predictions,
-    distance=distance
-)
+files = sorted(os.listdir(config.DAS_WATERFALL_PATH))  
+total = len(files)
 
-plt.savefig(
-    output_path,
-    dpi=300
-)
+for n, input_file in enumerate(files, start=1):
+    print(f"[{n}/{total}]")
+    start_by = config.TOTAL_DISTANCE_KM * (n - 1)
+    end_by   = config.TOTAL_DISTANCE_KM *  n
+    ax_wf.set_xlim(start_by, end_by)
 
-distance_array = np.linspace(0, config.TOTAL_DISTANCE_KM, len(predictions))
-data = np.vstack((predictions, distance_array)).T
-np.savetxt(
-     os.path.join(config.CLUSTERING_RESULTS_FOLDER_CLUSTERS_DIST
-, output_filename_clusters_dist),
-    data,
-    fmt=['%d', '%.3f'],              
-    delimiter='\t',                  
-    header='cluster_number\tdistance_km',
-    comments=''
-)
+    parts = input_file.split('_')
+    date_part = parts[2]                 # e.g. 20250331
+    time_part = parts[3].split('.')[0]   # e.g. 020545
+    ax_wf.set_title(f"{date_part} {time_part}")
+
+    ax_wf.set_xticks([start_by, end_by])
+    ax_wf.set_xticklabels(['0', f'{config.TOTAL_DISTANCE_KM}'])
+    
+    output_filename = f"clustering_result_{date_part}_{time_part}.png"
+    output_path = os.path.join(config.CLUSTERING_RESULTS_FOLDER, output_filename)
+    fig.savefig(output_path, dpi=300)
+
+plt.close(fig)
