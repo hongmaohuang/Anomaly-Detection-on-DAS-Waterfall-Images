@@ -6,18 +6,19 @@ from obspy import Trace, Stream, UTCDateTime
 import config
 import shutil
 import math
-
+import glob
 if os.path.exists(config.SCATTERING_COEFFICIENTS_FOLDER):
     shutil.rmtree(config.SCATTERING_COEFFICIENTS_FOLDER)
 os.makedirs(config.SCATTERING_COEFFICIENTS_FOLDER)
 
 network = pickle.load(open(f"{config.WAVELET_FOLDER}/scattering_network.pickle", "rb"))
 file = sorted(Path(config.FEATURES_FOLDER).glob("features_*.npz"))
+file_list = sorted(glob.glob(f'{config.WATERFALL_NPZ_FOLDER}/*.npz'))
 data = np.load(file[0])
 features_array = data["features"] 
-feature1_values = features_array[:, 0]
-feature2_values = features_array[:, 1]
-feature3_values = features_array[:, 2]
+feature1_values = features_array[0]
+feature2_values = features_array[1]
+feature3_values = features_array[2]
 
 # Fake the start time
 starttime = UTCDateTime("2025-01-01T00:00:00")
@@ -36,7 +37,7 @@ tr_3.stats.channel = "Feature_3"
 feature_stream = Stream(traces=[tr_1, tr_2, tr_3])
 
 # Extract segment length (from any layer)
-distance_per_sample = config.TOTAL_DISTANCE_KM / len(tr_1.data)
+distance_per_sample = (config.TOTAL_DISTANCE_KM*len(file_list)) / len(tr_1.data)
 segment_len_samples = network.bins
 step_samples = math.ceil(segment_len_samples * (1 - config.SEGMENT_OVERLAP))
 
@@ -51,7 +52,7 @@ for i in range(0, len(tr_1.data) - segment_len_samples + 1, step_samples):
     distance_all.append(i * distance_per_sample)
 
 print("========================== Confirm the distances ==========================")
-print(f"Origianl Distance: {config.TOTAL_DISTANCE_KM} km")
+print(f"Origianl Distance: {config.TOTAL_DISTANCE_KM*len(file_list)} km")
 print(f"Distance: {distance_all[-1]} km")
 
 # Run the scattering transform
