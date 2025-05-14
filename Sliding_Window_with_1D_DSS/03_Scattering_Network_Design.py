@@ -5,21 +5,21 @@ from pathlib import Path
 from scatseisnet import ScatteringNetwork
 import config
 import shutil
-import sys
+import glob
 
 if os.path.exists(config.WAVELET_FOLDER):
-    print(f"{config.WAVELET_FOLDER} is already created. Please confirm if that fits your project.")
-    sys.exit(0)
+    shutil.rmtree(config.WAVELET_FOLDER)
 os.makedirs(config.WAVELET_FOLDER)
 
 # === Extract Distance and Duration Information ===
 feature_files = sorted(Path(config.FEATURES_FOLDER).glob("features_*.npz"))
+file_list = sorted(glob.glob(f'{config.WATERFALL_NPZ_FOLDER}/*.npz'))
 features = np.load(feature_files[0])["features"]
-num_samples = features.shape[0]
-sampling_rate_per_km = num_samples / config.TOTAL_DISTANCE_KM
-samples_per_segment = max(1, round(config.SEGMENT_DISTANCE * sampling_rate_per_km))
-# === Create the Scattering Network ===
+num_samples = features.shape[1]
+sampling_rate_per_km = num_samples / (config.TOTAL_DISTANCE_KM*len(file_list))
+samples_per_segment = int(config.SEGMENT_DISTANCE * sampling_rate_per_km)
 
+# === Create the Scattering Network ===
 print(f"You are using the scattering network with the following parameters:\n"
       f"  - Number of octaves (bank 1): {config.OCTAVES_1}\n"
       f"  - Resolution (bank 1): {config.RESOLUTION_1}\n"
