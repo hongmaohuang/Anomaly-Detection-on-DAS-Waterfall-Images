@@ -1,8 +1,13 @@
 import os
 import numpy as np
 from PIL import Image
-import config
 import shutil
+import config
+from skimage.filters.rank import entropy
+from skimage.morphology import disk
+from skimage import exposure
+from scipy.spatial import cKDTree
+import matplotlib.cm as cm, matplotlib.pyplot as plt
 
 # Remove and recreate output folder
 if os.path.exists(config.WATERFALL_NPZ_FOLDER):
@@ -48,3 +53,63 @@ for idx, fname in enumerate(file_list, start=1):
     np.savez(save_path, waterfall=cropped)
 
 print("All images processed!\n")
+
+
+# Testing for different transformation on waterfall images
+target = "Waterfall_RMS_20250518_081111_utc.npz"
+# This file is an example which includes mudslides on May 18, 2025
+npz_files = [os.path.join(config.WATERFALL_NPZ_FOLDER, target)]
+
+for f in npz_files:
+    with np.load(f) as data:
+        wf = data["waterfall"].mean(axis=2)
+        wf_rgba = data["waterfall"]
+    wf_rgb  = wf_rgba[..., :3].astype(np.uint8)  
+    jet = cm.get_cmap("jet", 256)(np.arange(256))[:, :3]
+    idx_img = cKDTree(jet).query(wf_rgb.reshape(-1,3), k=1)[1]\
+                        .reshape(wf_rgb.shape[:2]).astype(np.uint8)
+    dmin, dmax = -113.0, -35.0
+    wf_db = dmin + idx_img.astype(np.float32)*(dmax-dmin)/255.0
+    ny, nx = wf_db.shape
+    dt_sec = config.DURATION_WATERFALL * 60 / ny         
+    dx_m   = config.TOTAL_DISTANCE_KM * 1000 / nx
+    dI_dt, dI_dx = np.gradient(wf_db, dt_sec, dx_m)
+    eps = 0
+    slope = dI_dt / (dI_dx + eps)
+    wf_db_u8 = exposure.rescale_intensity(
+                wf_db, in_range=(dmin, dmax), out_range='uint8'
+            ).astype(np.uint8)
+    ent_img = entropy(wf_db_u8, footprint=disk(1))    
+
+    fig_w, ax_w = plt.subplots(figsize=(12, 4), dpi=300)
+    im_w = ax_w.imshow(
+        wf_db,
+        extent=[0, config.TOTAL_DISTANCE_KM, config.DURATION_WATERFALL, 0],
+        aspect="auto",
+        cmap="jet",  
+        vmin=dmin, vmax=dmax, 
+    )
+    fig_w.colorbar(im_w, ax=ax_w)
+    fig_w.suptitle(f"RMS (mapped)", fontsize=16, fontweight='bold')
+
+    fig_s, ax_s = plt.subplots(figsize=(12, 4), dpi=300)
+    im_s = ax_s.imshow(
+        slope,
+        extent=[0, config.TOTAL_DISTANCE_KM, config.DURATION_WATERFALL, 0],
+        aspect="auto",
+        cmap="jet",
+        vmin=-300, vmax=300
+    )
+    fig_s.colorbar(im_s, ax=ax_s)
+    fig_s.suptitle(f"SLOWNESS (cal. from rms)", fontsize=16, fontweight='bold')
+    
+    fig_e, ax_e = plt.subplots(figsize=(12, 4), dpi=300)
+    im_e = ax_e.imshow(
+        ent_img,
+        extent=[0, config.TOTAL_DISTANCE_KM, config.DURATION_WATERFALL, 0],
+        aspect="auto",
+        cmap="jet"          
+    )
+    fig_e.colorbar(im_e, ax=ax_e)
+    fig_e.suptitle(f"ENTROPY (cal. from rms)", fontsize=16, fontweight='bold')
+    plt.show()
