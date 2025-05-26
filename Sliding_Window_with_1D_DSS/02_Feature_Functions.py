@@ -14,11 +14,12 @@ file_list = sorted(glob.glob(f'{config.WATERFALL_NPZ_FOLDER}/*.npz'))
 feat_1_all = []
 feat_2_all = []
 feat_3_all = []
-for file in file_list:
+for idx, file in enumerate(file_list):
+    print(f"[{idx}/{len(file_list)}]")
     basename = os.path.splitext(os.path.basename(file))[0]
     dt_str = basename.split('_')[2] + basename.split('_')[3]
     dt = datetime.strptime(dt_str, "%Y%m%d%H%M%S")
-    print(f"\nProcessing {dt.strftime('%Y-%m-%d %H:%M:%S')}\n")
+    #print(f"\nProcessing {dt.strftime('%Y-%m-%d %H:%M:%S')}\n")
     data = np.load(file)
     img_gray = data["waterfall"].mean(axis=2)
     DAS_data = img_gray
@@ -30,9 +31,7 @@ for file in file_list:
         print(f"Distance per Channel: {distance_per_channel*1000:.5f} m")
         print(f"Total Duration: {config.TOTAL_DURATION_SEC:.2f} sec")
         print(f"Total Distance: {config.TOTAL_DISTANCE_KM:.2f} km\n")
-
-    # ==== Extract Features across Distance ====
-    print(f"Extracting features every {config.STEP_CHANNEL} pixels with a window size of {config.WINDOW_SIZE_CHANNEL} pixels\n")
+        print(f"Extracting features every {config.STEP_CHANNEL} pixels with a window size of {config.WINDOW_SIZE_CHANNEL} pixels\n")
     
     for j in range(0, num_channels - config.WINDOW_SIZE_CHANNEL + 1, config.STEP_CHANNEL):
         window = DAS_data[:, j:j+config.WINDOW_SIZE_CHANNEL]
