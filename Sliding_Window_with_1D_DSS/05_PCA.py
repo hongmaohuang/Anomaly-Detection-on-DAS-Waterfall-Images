@@ -26,11 +26,13 @@ scattering_coefficients = np.hstack((order_1, order_2))
 scattering = np.where(scattering_coefficients <= 0, 1e-10, scattering_coefficients)
 
 # transform into log
-scattering_coefficients = np.log10(scattering)
+#scattering_coefficients = np.log10(scattering)
+scattering_coefficients = scattering
 
 # 5. Normalize
-scattering = StandardScaler().fit_transform(scattering_coefficients)
-
+scattering = StandardScaler().fit_transform(
+    scattering_coefficients.astype(np.float32)   
+)
 # print info about shape
 n_distance, n_coeff = scattering_coefficients.shape
 
@@ -43,6 +45,21 @@ if config.RUN_PCA == "YES":
     pca_model = PCA(n_components=config.PCA_COMPONENTS, whiten=True)
     pca_features = pca_model.fit_transform(scattering_coefficients)
 
+    # Save the PCA features
+    np.savez(
+        f"{config.PCA_ICA_FOLDER}/independent_PCA_components.npz",
+        features=pca_features,
+        distance=distance,
+    )
+
+    # Save the dimension reduction model
+    with open(f"{config.PCA_ICA_FOLDER}/dimension_model_PCA.pickle", "wb") as pickle_file:
+        pickle.dump(
+            pca_model,
+            pickle_file,
+            protocol=pickle.HIGHEST_PROTOCOL,
+        )
+    '''
     # Plot the result from PCA
     # Normalize features for display
     features_normalized = pca_features / np.abs(pca_features).max(axis=0)
@@ -72,7 +89,7 @@ if config.RUN_PCA == "YES":
 
     # Show
     plt.savefig(f"{config.PCA_ICA_FOLDER}/pca.png", dpi=300)
-
+    '''
 # Apply FastICA
 # If the PCA analysis showed us that only a few components 
 # contain relevant information and we can use that 
@@ -80,6 +97,7 @@ if config.RUN_PCA == "YES":
 # PCA's n_components to a lower number for 
 # the ICA analysis. 
 #
+
 ica_model = FastICA(n_components=config.ICA_COMPONENTS, whiten="unit-variance", random_state=42)
 ica_features = ica_model.fit_transform(scattering_coefficients)
 
@@ -97,7 +115,7 @@ with open(f"{config.PCA_ICA_FOLDER}/dimension_model.pickle", "wb") as pickle_fil
         pickle_file,
         protocol=pickle.HIGHEST_PROTOCOL,
     )
-
+''' 
 # Normalize features for display
 features_normalized = ica_features / np.abs(ica_features).max(axis=0)
 
@@ -121,3 +139,4 @@ cbar_ax.ax.set_ylim(distance.min(),distance.max())
 
 # Show
 plt.savefig(f"{config.PCA_ICA_FOLDER}/ica.png", dpi=300)
+'''
