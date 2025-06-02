@@ -61,7 +61,7 @@ for idx, file in enumerate(file_list):
     for j in range(0, num_channels - config.WINDOW_SIZE_CHANNEL + 1, config.STEP_CHANNEL):
         window_1 = rms_img[:, j:j+config.WINDOW_SIZE_CHANNEL]
         window_2 = asp_slo_prod_img[:, j:j+config.WINDOW_SIZE_CHANNEL]
-        feat_1 = window_1.std()
+        feat_1 = window_1.std(ddof=1)
         feat_2 = window_2.mean()
         window_3 = rms_img[:, j:j+config.WINDOW_SIZE_CHANNEL].astype(float).mean(axis=1)
         window_3 -= window_3.mean()
