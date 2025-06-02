@@ -63,32 +63,6 @@ else:  # GMM
     model.fit(features)
     predictions = model.predict(features)
 
-# determine number of clusters & mapping
-if method == "kmeans":
-    n_clusters = config.KMEANS_CLUSTERS
-elif method == "gmm":
-    n_clusters = config.GMM_N_COMPONENTS
-elif method == "agglomerative":
-    n_clusters = config.AGG_N_CLUSTERS
-else:  # dbscan: ignore noise label -1
-    unique_labels = sorted(set(predictions) - {-1})
-    n_clusters = len(unique_labels)
-
-label_to_index = {
-    lab: idx
-    for idx, lab in enumerate(
-        range(n_clusters)
-        if method in ("kmeans", "gmm", "agglomerative")
-        else unique_labels
-    )
-}
-
-# one-hot encoding
-one_hot = np.zeros((len(distance), n_clusters))
-for i, lab in enumerate(predictions):
-    if lab in label_to_index:
-        one_hot[i, label_to_index[lab]] = 1
-
 out_path = Path(config.CLUSTERING_RESULTS_FOLDER) / f"{method}_dist_label.dat"
 combined = np.column_stack((distance, predictions))
 header = "cluster_labels"
