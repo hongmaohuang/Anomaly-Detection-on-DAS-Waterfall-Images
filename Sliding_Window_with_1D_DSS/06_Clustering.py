@@ -63,7 +63,7 @@ else:  # GMM
     model.fit(features)
     predictions = model.predict(features)
 
-out_path = Path(config.CLUSTERING_RESULTS_FOLDER) / f"{method}_dist_label.dat"
+out_path = Path(config.CLUSTERING_RESULTS_FOLDER) / f"cluster_labels.dat"
 combined = np.column_stack((distance, predictions))
-header = "cluster_labels"
+header = "dist clusters"
 np.savetxt(out_path, combined, fmt="%.3f %d", header=header, comments="")
