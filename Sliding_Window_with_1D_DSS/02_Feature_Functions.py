@@ -1,10 +1,7 @@
-# %%
 import os
 import glob
 import numpy as np
 from datetime import datetime
-from pathlib import Path
-os.chdir(Path(__file__).resolve().parent)
 import config 
 import shutil
 import matplotlib.cm as cm, matplotlib.pyplot as plt
