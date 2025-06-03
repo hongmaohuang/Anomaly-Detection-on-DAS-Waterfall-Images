@@ -10,9 +10,9 @@ import glob
 import config
 import sys
 
-os.makedirs(config.CLUSTERING_RESULTS_FOLDER, exist_ok=True)
-#os.makedirs(config.CLUSTERING_RESULTS_FOLDER_CLUSTERS, exist_ok=True)
-#os.makedirs(config.CLUSTERING_RESULTS_FOLDER_CLUSTERS_DIST, exist_ok=True)
+if os.path.exists(config.CLUSTERING_RESULTS_FOLDER):
+    shutil.rmtree(config.CLUSTERING_RESULTS_FOLDER)
+os.makedirs(config.CLUSTERING_RESULTS_FOLDER)
 
 # load features & distance
 with np.load(f"{Path(config.PCA_ICA_FOLDER)}/independent_components.npz", allow_pickle=True) as data:
