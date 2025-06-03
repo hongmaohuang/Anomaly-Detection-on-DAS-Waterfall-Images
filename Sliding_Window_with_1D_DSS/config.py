@@ -17,8 +17,7 @@ WAVELET_FOLDER = os.path.join(OUTPUT_PATH, "wavelets")
 SCATTERING_COEFFICIENTS_FOLDER = os.path.join(OUTPUT_PATH, "scattering_coefficients")
 PCA_ICA_FOLDER = os.path.join(OUTPUT_PATH, "pca_ica")
 CLUSTERING_RESULTS_FOLDER = os.path.join(OUTPUT_PATH, "clustering_results")
-CLUSTERING_RESULTS_FOLDER_CLUSTERS = os.path.join(CLUSTERING_RESULTS_FOLDER, "clusters")
-CLUSTERING_RESULTS_FOLDER_CLUSTERS_DIST = os.path.join(CLUSTERING_RESULTS_FOLDER, "clusters_dist_log")
+VISUALIZATION_FOLDER = os.path.join(OUTPUT_PATH, "visualizations")
 
 # ==== Image Crops ==== #
 CROP_OR_NOT = 'YES'  # 'YES' or 'NO'
@@ -43,24 +42,24 @@ WINDOW_SIZE_CHANNEL = 3
 STEP_CHANNEL = 2
 
 # ==== Scattering Network Parameters ==== #
-SEGMENT_DISTANCE = 0.02  # in km
-SEGMENT_OVERLAP = 0.5  # as fraction (e.g., 0.2 = 20% overlap)
-OCTAVES_1 = 6
-RESOLUTION_1 = 10
+SEGMENT_DISTANCE = 0.2  # in km
+SEGMENT_OVERLAP = 0.2  # as fraction (e.g., 0.2 = 20% overlap)
+OCTAVES_1 = 4
+RESOLUTION_1 = 6
 QUALITY_1 = 1
-OCTAVES_2 = 4
-RESOLUTION_2 = 8
+OCTAVES_2 = 2
+RESOLUTION_2 = 4
 QUALITY_2 = 1
 
 # ==== PCA and ICA ==== #
 RUN_PCA = "NO" # "YES" or "NO"
-PCA_COMPONENTS = 20
-ICA_COMPONENTS = 3 # Could be estimated using PCA Result 
+PCA_COMPONENTS = 5
+ICA_COMPONENTS = 5 # Could be estimated using PCA Result 
 
 # ==== Clustering Parameters ==== #
 CLUSTER_METHOD = "gmm"   # "kmeans", "gmm", "dbscan", "agglomerative"
 KMEANS_CLUSTERS = 5
-GMM_N_COMPONENTS = 5
+GMM_N_COMPONENTS = 3
 GMM_COVARIANCE_TYPE = "full"
 DBSCAN_EPS = 0.6
 DBSCAN_MIN_SAMPLES = 50
