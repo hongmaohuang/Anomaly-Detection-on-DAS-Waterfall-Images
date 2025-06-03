@@ -1,7 +1,10 @@
+# %%
 import os
 import glob
 import numpy as np
 from datetime import datetime
+from pathlib import Path
+os.chdir(Path(__file__).resolve().parent)
 import config 
 import shutil
 import matplotlib.cm as cm, matplotlib.pyplot as plt
@@ -33,7 +36,7 @@ for idx, file in enumerate(file_list):
     idx_img = cKDTree(jet).query(wf_rgb.reshape(-1,3), k=1)[1]\
                         .reshape(wf_rgb.shape[:2]).astype(np.uint8)
     dmin, dmax = -113.0, -35.0
-    wf_db = dmin + idx_img.astype(np.float32)*(dmax-dmin)/255.0
+    wf_db = dmin + idx_img.astype(np.float16)*(dmax-dmin)/255.0
     wf_db_u8 = exposure.rescale_intensity(
             wf_db, in_range=(dmin, dmax), out_range='uint8'
         ).astype(np.uint8)
@@ -63,16 +66,19 @@ for idx, file in enumerate(file_list):
         window_2 = asp_slo_prod_img[:, j:j+config.WINDOW_SIZE_CHANNEL]
         feat_1 = window_1.std(ddof=1)
         feat_2 = window_2.mean()
-        window_3 = rms_img[:, j:j+config.WINDOW_SIZE_CHANNEL].astype(float).mean(axis=1)
-        window_3 -= window_3.mean()
-        fft_vals = np.fft.rfft(window_3)
-        amp_spec = np.abs(fft_vals) / window_3.size
-        freqs    = np.fft.rfftfreq(window_3.size, d=dt_sec)
-        feat_3   = freqs[np.argmax(amp_spec)]
+        window_3 = rms_img[:, j:j+config.WINDOW_SIZE_CHANNEL].astype(np.float16)
+        feat_3_in_one = []
+        for k in range(window_3.shape[1]):
+            col = window_3[:, k] 
+            col -= col.mean()
+            fft_vals = np.fft.rfft(col)
+            amp_spec = np.abs(fft_vals) / col.size
+            freqs    = np.fft.rfftfreq(col.size, d=dt_sec)
+            feat_3_in_one.append(freqs[np.argmax(amp_spec)])
+        feat_3 = np.mean(feat_3_in_one)
         feat_1_all.append(feat_1)
         feat_2_all.append(feat_2)
         feat_3_all.append(feat_3)
-
 feature_vector = np.array([feat_1_all, feat_2_all, feat_3_all])
 #center_distance = (j + config.WINDOW_SIZE_CHANNEL / 2) * distance_per_channel
 #window_centers_distance.append(center_distance)
