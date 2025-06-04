@@ -52,7 +52,7 @@ for i in range(0, len(tr_1.data) - segment_len_samples + 1, step_samples):
     distance_all.append(i * distance_per_sample)
 
 print("========================== Confirm the distances ==========================")
-print(f"Origianl Distance: {config.TOTAL_DISTANCE_KM*len(file_list)} km")
+print(f"Original Distance: {config.TOTAL_DISTANCE_KM*len(file_list)} km")
 print(f"Distance: {distance_all[-1]} km")
 
 # Run the scattering transform
