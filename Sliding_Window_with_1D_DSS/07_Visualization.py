@@ -1,11 +1,12 @@
 # %%
 from pathlib import Path
 import os 
-os.chdir(Path(__file__).resolve().parent)
 import numpy as np
 import matplotlib.pyplot as plt
+os.chdir(Path(__file__).resolve().parent)
 import config
 import shutil
+from matplotlib.colors import ListedColormap
 
 if os.path.exists(config.VISUALIZATION_FOLDER):
     shutil.rmtree(config.VISUALIZATION_FOLDER)
@@ -27,28 +28,23 @@ total_files = len(npz_files)
 groups = [npz_files[i:i + files_per_group] for i in range(0, total_files, files_per_group)]
 print(f"Split into {len(groups)} groups (files_per_group={files_per_group}).")
 
+n_labels = np.unique(predictions).max() + 1
+cmap = plt.cm.get_cmap("tab20", n_labels)
+label_cmap = ListedColormap(cmap.colors[:n_labels])
+
 for g_idx, group in enumerate(groups, 1):
-    if not group:
-        continue
-    print(f"➤ Processing group {g_idx}/{len(groups)} with {len(group)} files …")
-    waterfalls = [np.load(fp)[waterfall_key].mean(axis=2) for fp in reversed(group)]
-    stacked = np.vstack(waterfalls)
+    waterfalls = [np.load(fp)["waterfall"].mean(axis=2) for fp in reversed(group)]
+    stacked    = np.vstack(waterfalls)
+    x_min, x_max      = 0, config.TOTAL_DISTANCE_KM
+    sec_per_file      = config.DURATION_WATERFALL * 60
+    total_sec         = len(group) * sec_per_file
+    num_seg           = len(group)
+    seg_len           = len(predictions) // num_seg
+    x_vals            = np.linspace(x_min, x_max, seg_len, endpoint=False)
 
-    x_min, x_max = 0, config.TOTAL_DISTANCE_KM
-    sec_per_file = config.DURATION_WATERFALL * 60
-    total_sec    = len(group) * sec_per_file
-
-    num_seg = len(group)
-    seg_len = len(predictions) // num_seg
-    x_vals  = np.linspace(x_min, x_max, seg_len, endpoint=False)
-    step    = x_vals[1] - x_vals[0]
-
-    unique_labels = np.unique(predictions)
-    cmap = plt.cm.get_cmap("tab10", len(unique_labels))
-
-    for idx_lab, lab in enumerate(unique_labels):
+    for cluster_num in range(n_labels):
+        print(f'Cluster: {cluster_num}')
         fig, ax = plt.subplots(figsize=(12, 6))
-
         ax.imshow(
             stacked,
             cmap="gray",
@@ -57,33 +53,26 @@ for g_idx, group in enumerate(groups, 1):
             origin="lower",
         )
 
-        for seg in range(num_seg):
-            start, end = seg * seg_len, (seg + 1) * seg_len
-            preds_seg = predictions[start:end] == lab
-            idx_true  = np.where(preds_seg)[0]
-            splits = np.split(idx_true, np.where(np.diff(idx_true) != 1)[0] + 1)
-            y_center = total_sec - (seg + 0.5) * sec_per_file
-            for blk in splits:
-                x0 = x_vals[blk[0]]
-                x1 = min(x_max, x_vals[blk[-1]] + 0.05)
-                ax.hlines(y=y_center, xmin=x0, xmax=x1,
-                          color=cmap(idx_lab), linewidth=10)
-
+        for seg_idx in range(num_seg):
+            print(f'NO. {seg_idx} waterfall images')
+            start, end = seg_idx * seg_len, (seg_idx + 1) * seg_len
+            print(start)
+            print(end)
+            idx = np.where(predictions[start:end] == cluster_num)[0]
+            y_center = total_sec - (seg_idx + 0.5) * sec_per_file
+            print(y_center)
+            ax.scatter(
+                x_vals[idx],                        
+                np.full(idx.shape, y_center),       
+                c="k",                             
+                s=5,
+                marker="s",
+                linewidths=0,
+            )
+        ax.set_yticks(np.arange(0, total_sec + 60, 60))
         ax.set_xlabel("Distance (km)")
-        ax.set_ylabel("Relative Time (min)")
-        yticks = np.arange(0, total_sec + 1, 60)
-        ax.set_yticks(yticks)
-        ax.set_yticklabels((yticks / 60).astype(int))
-        ax.set_ylim(total_sec, 0)
-
-        last_stem = group[-1].stem
-        date_time = "_".join(last_stem.split("_")[2:4])
-        ax.set_title(f"Cluster {lab} before {date_time}")
-        plt.tight_layout()
-
-        out_name = f"Cluster_{lab}_before_{date_time}.png"
-        out_path = Path(config.VISUALIZATION_FOLDER) / out_name
-        plt.savefig(out_path, dpi=300)
+        ax.set_ylabel("Time (s)")
+        ax.set_ylim(total_sec, 0)                  
+        out_png = Path(config.VISUALIZATION_FOLDER) / f"{str(group[-1]).split('/')[-1].split('_')[2]+'_'+str(group[-1]).split('/')[-1].split('_')[3]}_cluster{cluster_num}.png"
+        fig.savefig(out_png, dpi=300)
         plt.close(fig)
-
-print("All groups processed. Done! 🎉")
