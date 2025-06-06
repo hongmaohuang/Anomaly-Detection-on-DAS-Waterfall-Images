@@ -47,7 +47,6 @@ for idx, file in enumerate(file_list):
     aspect_rad = np.arctan2(dI_dt, dI_dx)
     aspect_deg_img = (np.degrees(aspect_rad) + 360) % 360
     asp_slo_prod_img = aspect_deg_img * slope_img
-
     time_per_sample = config.TOTAL_DURATION_SEC / num_time_samples
     distance_per_channel = config.TOTAL_DISTANCE_KM / num_channels
     
@@ -73,6 +72,12 @@ for idx, file in enumerate(file_list):
             freqs    = np.fft.rfftfreq(col.size, d=dt_sec)
             feat_3_in_one.append(freqs[np.argmax(amp_spec)])
         feat_3 = np.mean(feat_3_in_one)
+        ''' 
+        window = window_1 #original use
+        feat_1 = np.median(window) #original use
+        feat_2 = window.std() #original use
+        feat_3 = np.percentile(window, 75) #original use
+        '''
         feat_1_all.append(feat_1)
         feat_2_all.append(feat_2)
         feat_3_all.append(feat_3)
