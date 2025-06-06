@@ -59,7 +59,7 @@ ICA_COMPONENTS = 5 # Could be estimated using PCA Result
 # ==== Clustering Parameters ==== #
 CLUSTER_METHOD = "gmm"   # "kmeans", "gmm", "dbscan", "agglomerative"
 KMEANS_CLUSTERS = 5
-GMM_N_COMPONENTS = 3
+GMM_N_COMPONENTS = 6
 GMM_COVARIANCE_TYPE = "full"
 DBSCAN_EPS = 0.6
 DBSCAN_MIN_SAMPLES = 50
@@ -67,8 +67,8 @@ AGG_N_CLUSTERS = 5
 AGG_LINKAGE = "single"  # "ward", "complete", "average", "single"
 
 # ==== Visualization Parameters ==== #
-SMOOTH_KERNEL = 5
-
+OCCURRENCES_LOC = 13.8896
+ACCUMULATIONS_PER_FILE = 4
 
 
 
