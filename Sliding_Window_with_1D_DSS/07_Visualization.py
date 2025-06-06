@@ -1,4 +1,76 @@
-# %%
+import os
+from pathlib import Path
+import numpy as np
+import matplotlib.pyplot as plt
+from datetime import datetime
+import matplotlib.dates as mdates
+import config
+
+count_dir = Path(config.VISUALIZATION_FOLDER) / "cluster_counts"
+count_dir.mkdir(parents=True, exist_ok=True)
+
+label_path = Path(config.CLUSTERING_RESULTS_FOLDER) / "cluster_labels.dat"
+label_data = np.loadtxt(label_path, skiprows=1)
+distances = label_data[:, 0]
+labels = label_data[:, 1].astype(int)
+unique_clusters = np.unique(labels)
+
+npz_files = sorted(Path(config.WATERFALL_NPZ_FOLDER).glob("*.npz"))
+num_files = len(npz_files)
+file_times = [
+    datetime.strptime(p.stem.split('_')[2] + p.stem.split('_')[3], "%Y%m%d%H%M%S")
+    for p in npz_files
+]
+
+target_dist = config.OCCURRENCES_LOC
+dist_per_file = config.TOTAL_DISTANCE_KM
+group_size = config.ACCUMULATIONS_PER_FILE
+
+indices = []
+for i in range(num_files):
+    global_target = target_dist + i * dist_per_file
+    idx = int(np.argmin(np.abs(distances - global_target)))
+    indices.append(idx)
+
+groups = [indices[i:i + group_size] for i in range(0, len(indices), group_size)]
+group_times = [file_times[i] for i in range(0, len(file_times), group_size)]
+time_vals = mdates.date2num(group_times)
+
+for clust in unique_clusters:
+    counts = [np.sum(labels[idxs] == clust) for idxs in groups]
+    plt.figure(figsize=(8, 4))
+    plt.plot(time_vals, counts, marker='o', color='gray', markersize=2)
+    ax = plt.gca()
+    ax.xaxis_date()
+    ax.xaxis.set_major_locator(mdates.MinuteLocator(interval=10))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+    plt.xlabel("Time")
+    plt.ylabel("Count")
+    plt.title(f"Cluster {clust} occurrences at {target_dist} km")
+    plt.grid(True)
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig(count_dir / f"cluster{clust}_counts.png", dpi=300)
+    plt.close()
+
+    accumulated_counts = np.cumsum(counts)
+    plt.figure(figsize=(8, 4))
+    plt.plot(time_vals, accumulated_counts, marker='o', color='gray', markersize=2)
+    ax = plt.gca()
+    ax.xaxis_date()
+    ax.xaxis.set_major_locator(mdates.MinuteLocator(interval=10))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+    plt.xlabel("Time")
+    plt.ylabel("Accumulated Count")
+    plt.title(f"Accumulated occurrences of Cluster {clust} at {target_dist} km")
+    plt.grid(True)
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig(count_dir / f"cluster{clust}_accumulated_counts.png", dpi=300)
+    plt.close()
+
+'''
+# Events With waterfall images
 from pathlib import Path
 import os 
 import numpy as np
@@ -65,7 +137,7 @@ for g_idx, group in enumerate(groups, 1):
                 x_vals[idx],                        
                 np.full(idx.shape, y_center),       
                 c="k",                             
-                s=5,
+                s=1,
                 marker="s",
                 linewidths=0,
             )
@@ -76,3 +148,4 @@ for g_idx, group in enumerate(groups, 1):
         out_png = Path(config.VISUALIZATION_FOLDER) / f"{str(group[-1]).split('/')[-1].split('_')[2]+'_'+str(group[-1]).split('/')[-1].split('_')[3]}_cluster{cluster_num}.png"
         fig.savefig(out_png, dpi=300)
         plt.close(fig)
+''' 
