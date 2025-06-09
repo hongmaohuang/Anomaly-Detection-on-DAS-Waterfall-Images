@@ -5,12 +5,12 @@ from pathlib import Path
 import shutil
 
 # ==== Inputs ==== #
-DAS_DATA_PATH = f'../../Inputs/'
+DAS_DATA_PATH = f'../Inputs/'
 DAS_WATERFALL_PATH = os.path.join(DAS_DATA_PATH, "waterfall_images_1min")
 DAS_WAVEFORM_PATH = os.path.join(DAS_DATA_PATH, "waveforms")
 
 # ==== Outputs ==== #
-OUTPUT_PATH = f'../../Outputs/'
+OUTPUT_PATH = f'../Outputs/'
 WATERFALL_NPZ_FOLDER = os.path.join(OUTPUT_PATH, "waterfall_npz")
 FEATURES_FOLDER = os.path.join(OUTPUT_PATH, "features")
 WAVELET_FOLDER = os.path.join(OUTPUT_PATH, "wavelets")
