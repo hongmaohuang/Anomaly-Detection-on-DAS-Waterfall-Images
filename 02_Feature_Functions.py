@@ -9,6 +9,7 @@ from scipy.spatial import cKDTree
 from skimage import exposure
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
+from skimage.filters import gaussian, gabor
 
 if os.path.exists(config.FEATURES_FOLDER):
     shutil.rmtree(config.FEATURES_FOLDER)
@@ -33,34 +34,46 @@ for idx, file in enumerate(file_list):
     idx_img = cKDTree(jet).query(wf_rgb.reshape(-1,3), k=1)[1]\
                         .reshape(wf_rgb.shape[:2]).astype(np.uint8)
     dmin, dmax = -113.0, -35.0
-    wf_db = dmin + idx_img.astype(np.float16)*(dmax-dmin)/255.0
+    wf_db = dmin + idx_img.astype(np.float32)*(dmax-dmin)/255.0
     wf_db_u8 = exposure.rescale_intensity(
             wf_db, in_range=(dmin, dmax), out_range='uint8'
         ).astype(np.uint8)
-    rms_img = wf_db_u8
+    rms_img = wf_db
     num_time_samples, num_channels = rms_img.shape
     dt_sec = config.DURATION_WATERFALL * 60 / num_time_samples         
     dx_m   = config.TOTAL_DISTANCE_KM * 1000 / num_channels
     dI_dt, dI_dx = np.gradient(rms_img, dt_sec, dx_m)
+    ''' 
     eps = 1e-6
     slope_img = dI_dt / (dI_dx + eps)
     aspect_rad = np.arctan2(dI_dt, dI_dx)
     aspect_deg_img = (np.degrees(aspect_rad) + 360) % 360
     asp_slo_prod_img = aspect_deg_img * slope_img
+    '''
     time_per_sample = config.TOTAL_DURATION_SEC / num_time_samples
     distance_per_channel = config.TOTAL_DISTANCE_KM / num_channels
     
+    thetas = np.linspace(0, np.pi, 8, endpoint=False)
+    responses = []
+    for th in thetas:
+        real, imag = gabor(rms_img, frequency=0.05, theta=th)
+        mag = np.hypot(real, imag)
+        responses.append(mag)
+    responses = np.stack(responses, axis=0)
+    sloped_idxs = [np.argmin(np.abs(thetas - np.pi/4)),
+                np.argmin(np.abs(thetas - 3*np.pi/4))]
+    gabor_sloped = np.max(responses[sloped_idxs], axis=0)
+ 
     if file == file_list[0]:
         print(f"Time per Sample: {time_per_sample:.3f} sec")
         print(f"Distance per Channel: {distance_per_channel*1000:.5f} m")
         print(f"Total Duration: {config.TOTAL_DURATION_SEC:.2f} sec")
         print(f"Total Distance: {config.TOTAL_DISTANCE_KM:.2f} km\n")
         print(f"Extracting features every {config.STEP_CHANNEL} pixels with a window size of {config.WINDOW_SIZE_CHANNEL} pixels\n")
-    
     for j in range(0, num_channels - config.WINDOW_SIZE_CHANNEL + 1, config.STEP_CHANNEL):
         window_1 = rms_img[:, j:j+config.WINDOW_SIZE_CHANNEL]
-        window_2 = asp_slo_prod_img[:, j:j+config.WINDOW_SIZE_CHANNEL]
-        feat_1 = window_1.std(ddof=1)
+        window_2 = gabor_sloped[:, j:j+config.WINDOW_SIZE_CHANNEL]
+        feat_1 = window_1.std()
         feat_2 = window_2.mean()
         window_3 = rms_img[:, j:j+config.WINDOW_SIZE_CHANNEL].astype(np.float16)
         feat_3_in_one = []
