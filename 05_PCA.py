@@ -43,7 +43,7 @@ if config.RUN_PCA == "NO":
 if config.RUN_PCA == "YES":
     print("You are running PCA, please check the turning points in fig. and use it for ICA")
     pca_model = PCA(n_components=config.PCA_COMPONENTS, whiten=True)
-    pca_features = pca_model.fit_transform(scattering_coefficients)
+    pca_features = pca_model.fit_transform(scattering)
 
     # Save the PCA features
     np.savez(
@@ -99,7 +99,7 @@ if config.RUN_PCA == "YES":
 #
 
 ica_model = FastICA(n_components=config.ICA_COMPONENTS, whiten="unit-variance", random_state=42)
-ica_features = ica_model.fit_transform(scattering_coefficients)
+ica_features = ica_model.fit_transform(scattering)
 
 # Save the features
 np.savez(
