@@ -59,7 +59,7 @@ if config.RUN_PCA == "YES":
             pickle_file,
             protocol=pickle.HIGHEST_PROTOCOL,
         )
-    '''
+
     # Plot the result from PCA
     # Normalize features for display
     features_normalized = pca_features / np.abs(pca_features).max(axis=0)
@@ -89,7 +89,7 @@ if config.RUN_PCA == "YES":
 
     # Show
     plt.savefig(f"{config.PCA_ICA_FOLDER}/pca.png", dpi=300)
-    '''
+
 # Apply FastICA
 # If the PCA analysis showed us that only a few components 
 # contain relevant information and we can use that 
@@ -115,7 +115,7 @@ with open(f"{config.PCA_ICA_FOLDER}/dimension_model.pickle", "wb") as pickle_fil
         pickle_file,
         protocol=pickle.HIGHEST_PROTOCOL,
     )
-''' 
+
 # Normalize features for display
 features_normalized = ica_features / np.abs(ica_features).max(axis=0)
 
@@ -139,4 +139,3 @@ cbar_ax.ax.set_ylim(distance.min(),distance.max())
 
 # Show
 plt.savefig(f"{config.PCA_ICA_FOLDER}/ica.png", dpi=300)
-'''
