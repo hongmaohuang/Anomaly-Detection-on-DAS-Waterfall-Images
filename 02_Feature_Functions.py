@@ -35,9 +35,6 @@ for idx, file in enumerate(file_list):
                         .reshape(wf_rgb.shape[:2]).astype(np.uint8)
     dmin, dmax = -113.0, -35.0
     wf_db = dmin + idx_img.astype(np.float32)*(dmax-dmin)/255.0
-    wf_db_u8 = exposure.rescale_intensity(
-            wf_db, in_range=(dmin, dmax), out_range='uint8'
-        ).astype(np.uint8)
     rms_img = wf_db
     num_time_samples, num_channels = rms_img.shape
     dt_sec = config.DURATION_WATERFALL * 60 / num_time_samples         
