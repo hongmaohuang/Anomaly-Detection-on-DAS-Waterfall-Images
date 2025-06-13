@@ -85,7 +85,7 @@ np.savez(
 
 5. **Dimensionality Reduction** – ``05_PCA.py`` optionally runs PCA (if ``RUN_PCA="YES"``) and then performs ICA to obtain independent components.
 
-6. **Clustering** – ``06_Clustering.py`` clusters the ICA features. The method is selected using ``CLUSTER_METHOD`` in ``config.py`` (``kmeans``, ``gmm``, ``dbscan`` or ``agglomerative``).
+6. **Clustering** – ``06_Clustering.py`` clusters the ICA features. The method is selected using ``CLUSTER_METHOD`` in ``config.py`` (``kmeans``, ``gmm``, ``dbscan`` or ``agglomerative``). For GMM, you can optionally determine the number of components automatically by setting ``SELECT_CLUSTERS_WITH`` to ``"aic"`` or ``"bic"`` and specifying ``GMM_COMPONENT_RANGE``.
 
 7. **Visualization** – ``07_Visualization.py`` plots the number of occurrences for each cluster versus time and saves PNG images in ``visualizations/cluster_counts``.
 
