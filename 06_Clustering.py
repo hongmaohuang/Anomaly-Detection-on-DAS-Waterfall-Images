@@ -38,6 +38,7 @@ elif method == "gmm":
         best_score = np.inf
         best_gmm = None
         for n in range(start, end + 1):
+            print(f"Trying GMM with {n} components...")
             gmm = GaussianMixture(
                 n_components=n,
                 covariance_type=config.GMM_COVARIANCE_TYPE,
