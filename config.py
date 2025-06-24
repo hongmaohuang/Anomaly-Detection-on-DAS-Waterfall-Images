@@ -5,12 +5,12 @@ from pathlib import Path
 import shutil
 
 # ==== Inputs ==== #
-DAS_DATA_PATH = f'../Inputs/'
-DAS_WATERFALL_PATH = os.path.join(DAS_DATA_PATH, "waterfall_images_1min")
-DAS_WAVEFORM_PATH = os.path.join(DAS_DATA_PATH, "waveforms")
+DAS_DATA_PATH = f'/raid4/DAS_data/OptoDAS_HOPE/HOPE/'
+DAS_WATERFALL_PATH = os.path.join(DAS_DATA_PATH, "screenshots_HOPB_20250429/Waterfall_RMS_202505*.png")
+DAS_WAVEFORM_PATH = os.path.join(DAS_DATA_PATH, "20250518/proc")
 
 # ==== Outputs ==== #
-OUTPUT_PATH = f'../Outputs/'
+OUTPUT_PATH = f'/home/hmhuang/Work/Hualien_DAS_Monitoring/Outputs/'
 WATERFALL_NPZ_FOLDER = os.path.join(OUTPUT_PATH, "waterfall_npz")
 FEATURES_FOLDER = os.path.join(OUTPUT_PATH, "features")
 WAVELET_FOLDER = os.path.join(OUTPUT_PATH, "wavelets")
@@ -53,7 +53,7 @@ QUALITY_2 = 1
 
 # ==== PCA and ICA ==== #
 RUN_PCA = "NO" # "YES" or "NO"
-PCA_COMPONENTS = 5
+PCA_COMPONENTS = 50
 ICA_COMPONENTS = 5 # Could be estimated using PCA Result 
 
 # ==== Clustering Parameters ==== #
