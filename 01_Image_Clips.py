@@ -3,6 +3,7 @@ import numpy as np
 from PIL import Image
 import shutil
 import config
+import glob
 #from skimage.filters.rank import entropy
 #from skimage.morphology import disk
 #from skimage import exposure
@@ -18,10 +19,11 @@ os.makedirs(config.WATERFALL_NPZ_FOLDER)
 
 print(f"\nYou are using: {config.DURATION_WATERFALL} minutes with {config.TOTAL_DISTANCE_KM} km of DAS waterfall image!\n")
 
-# List all input files
-file_list = os.listdir(config.DAS_WATERFALL_PATH)
+#file_list = os.listdir(config.DAS_WATERFALL_PATH)
+file_list = sorted(glob.glob(config.DAS_WATERFALL_PATH))
 total = len(file_list)
 print(f"Found {total} waterfall images. Starting processing...")
+print(f"The data will be from {file_list[0]} to {file_list[-1]}\n")
 
 for idx, fname in enumerate(file_list, start=1):
     print(f"[{idx}/{total}] Processing {fname}")
@@ -53,6 +55,8 @@ for idx, fname in enumerate(file_list, start=1):
     npz_name = os.path.splitext(fname)[0] + ".npz"
     save_path = os.path.join(config.WATERFALL_NPZ_FOLDER, npz_name)
     np.savez(save_path, waterfall=cropped)
+    print(f"  - Saved to: {save_path}\n")
+    
 
 print("All images processed!\n")
 
