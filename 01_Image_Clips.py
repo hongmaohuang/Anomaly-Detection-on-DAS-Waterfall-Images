@@ -4,6 +4,9 @@ from PIL import Image
 import shutil
 import config
 import glob
+import matplotlib.pyplot as plt
+from datetime import datetime, timedelta
+import matplotlib.dates as mdates
 #from skimage.filters.rank import entropy
 #from skimage.morphology import disk
 #from skimage import exposure
@@ -59,6 +62,45 @@ for idx, fname in enumerate(file_list, start=1):
     
 
 print("All images processed!\n")
+
+# ----- Data Availability Plot -----
+npz_files = sorted(glob.glob(os.path.join(config.WATERFALL_NPZ_FOLDER, "*.npz")))
+timestamps = []
+for fp in npz_files:
+    base = os.path.basename(fp)
+    parts = base.split("_")
+    if len(parts) >= 4:
+        try:
+            dt = datetime.strptime(parts[2] + parts[3], "%Y%m%d%H%M%S")
+            timestamps.append(dt)
+        except ValueError:
+            continue
+
+if timestamps:
+    timestamps = sorted(timestamps)
+    start_t = timestamps[0]
+    end_t = timestamps[-1]
+    expected = []
+    cur = start_t
+    while cur <= end_t:
+        expected.append(cur)
+        cur += timedelta(minutes=config.DURATION_WATERFALL)
+    present = set(timestamps)
+    availability = [1 if t in present else 0 for t in expected]
+
+    fig, ax = plt.subplots(figsize=(10, 2))
+    ax.step(expected, availability, where="post")
+    ax.set_ylim(-0.1, 1.1)
+    ax.set_yticks([0, 1], ["Missing", "Available"])
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d %H:%M"))
+    fig.autofmt_xdate()
+    ax.set_title("Data Availability")
+    out_png = os.path.join(config.WATERFALL_NPZ_FOLDER, "data_availability.png")
+    fig.tight_layout()
+    fig.savefig(out_png, dpi=300)
+    plt.close(fig)
+    print(f"Data availability plot saved to: {out_png}\n")
+
 
 ''' 
 # Testing for different transformation on waterfall images

@@ -4,7 +4,7 @@ This repository contains a collection of Python scripts for detecting anomalous 
 
 ## Repository Layout
 
-- **01_Image_Clips.py** – Converts waterfall PNGs into cropped ``.npz`` files for faster access.
+- **01_Image_Clips.py** – Converts waterfall PNGs into cropped ``.npz`` files for faster access and generates a data availability plot from the ``.npz`` timestamps.
 - **02_Feature_Functions.py** – Computes statistical and spectral features from the cropped images.
 - **03_Scattering_Network_Design.py** – Builds a scattering network based on the feature data.
 - **04_Scattering_Transform.py** – Applies the scattering transform to the features.
