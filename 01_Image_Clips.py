@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 import shutil
 import config
 import glob
@@ -15,10 +15,9 @@ import matplotlib.dates as mdates
 #from pathlib import Path
 #os.chdir(Path(__file__).resolve().parent)
 
-# Remove and recreate output folder
-if os.path.exists(config.WATERFALL_NPZ_FOLDER):
-    shutil.rmtree(config.WATERFALL_NPZ_FOLDER)
-os.makedirs(config.WATERFALL_NPZ_FOLDER)
+# Ensure output folder exists but do not recreate it if already present
+if not os.path.exists(config.WATERFALL_NPZ_FOLDER):
+    os.makedirs(config.WATERFALL_NPZ_FOLDER)
 
 print(f"\nYou are using: {config.DURATION_WATERFALL} minutes with {config.TOTAL_DISTANCE_KM} km of DAS waterfall image!\n")
 
@@ -30,8 +29,16 @@ print(f"The data will be from {file_list[0]} to {file_list[-1]}\n")
 
 for idx, fname in enumerate(file_list, start=1):
     print(f"[{idx}/{total}] Processing {fname}")
-    img_path = os.path.join(config.DAS_WATERFALL_PATH, fname)
-    image = Image.open(img_path)
+    npz_name = os.path.splitext(os.path.basename(fname))[0] + ".npz"
+    save_path = os.path.join(config.WATERFALL_NPZ_FOLDER, npz_name)
+    if os.path.exists(save_path):
+        print(f"  - Output exists, skipping: {save_path}\n")
+        continue
+    try:
+        image = Image.open(fname)
+    except (UnidentifiedImageError, OSError) as e:
+        print(f"  - Failed to open image: {e}. Skipping.\n")
+        continue
     img_array = np.array(image)
 
     # Print original image info
@@ -55,8 +62,6 @@ for idx, fname in enumerate(file_list, start=1):
     print(f"{config.TOTAL_DISTANCE_KM/cropped.shape[1]*1000} m per pixel")
 
     # Save as .npz
-    npz_name = os.path.splitext(os.path.basename(fname))[0] + ".npz"
-    save_path = os.path.join(config.WATERFALL_NPZ_FOLDER, npz_name)
     np.savez(save_path, waterfall=cropped)
     print(f"  - Saved to: {save_path}\n")
 
