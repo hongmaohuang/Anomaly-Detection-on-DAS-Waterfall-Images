@@ -1,4 +1,5 @@
 # Anomaly Detection on DAS Waterfall Images
+- **README is provided by Codex, OpenAI**
 
 This repository contains a collection of Python scripts for detecting anomalous behaviour in Distributed Acoustic Sensing (DAS) waterfall images. The project processes a series of 1‑minute waterfall PNG images, extracts spectral features, applies a scattering transform, performs dimensionality reduction, clusters the data and visualizes the results.
 
@@ -22,8 +23,12 @@ Edit ``config.py`` to point to your input and output folders. The key variables 
 DAS_DATA_PATH = f'../../Inputs/'
 DAS_WATERFALL_PATH = os.path.join(DAS_DATA_PATH, "waterfall_images_1min")
 DAS_WAVEFORM_PATH = os.path.join(DAS_DATA_PATH, "waveforms")
+START_TIME = None  # e.g. "20250515_000000"
+END_TIME = None    # e.g. "20250518_235959"
 ```
 
+Set ``START_TIME`` and ``END_TIME`` to limit processing to a specific
+time range. Leave them as ``None`` to process all available files.
 Then execute the provided shell script:
 
 ```bash

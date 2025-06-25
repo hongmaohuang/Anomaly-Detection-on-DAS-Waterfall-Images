@@ -15,18 +15,39 @@ import matplotlib.dates as mdates
 #from pathlib import Path
 #os.chdir(Path(__file__).resolve().parent)
 
-# Ensure output folder exists but do not recreate it if already present
-if not os.path.exists(config.WATERFALL_NPZ_FOLDER):
-    os.makedirs(config.WATERFALL_NPZ_FOLDER)
+if os.path.exists(config.WATERFALL_NPZ_FOLDER):
+    shutil.rmtree(config.WATERFALL_NPZ_FOLDER)
+os.makedirs(config.WATERFALL_NPZ_FOLDER)
 
 print(f"\nYou are using: {config.DURATION_WATERFALL} minutes with {config.TOTAL_DISTANCE_KM} km of DAS waterfall image!\n")
 
 #file_list = os.listdir(config.DAS_WATERFALL_PATH)
 file_list = sorted(glob.glob(config.DAS_WATERFALL_PATH))
+
+# Filter by configured time range if specified
+if config.START_TIME and config.END_TIME:
+    start_dt = datetime.strptime(config.START_TIME, "%Y%m%d_%H%M%S")
+    end_dt = datetime.strptime(config.END_TIME, "%Y%m%d_%H%M%S")
+
+    def _in_range(path):
+        base = os.path.basename(path)
+        parts = base.split("_")
+        if len(parts) >= 4:
+            dt = datetime.strptime(parts[2] + "_" + parts[3], "%Y%m%d_%H%M%S")
+            return start_dt <= dt <= end_dt
+        return False
+
+    file_list = [f for f in file_list if _in_range(f)]
+
 total = len(file_list)
 print(f"Found {total} waterfall images. Starting processing...")
 print(f"The data will be from {file_list[0]} to {file_list[-1]}\n")
 
+if total:
+    print(f"The data will be from {file_list[0]} to {file_list[-1]}\n")
+else:
+    print("No files found for the specified time range\n")
+    
 for idx, fname in enumerate(file_list, start=1):
     print(f"[{idx}/{total}] Processing {fname}")
     npz_name = os.path.splitext(os.path.basename(fname))[0] + ".npz"

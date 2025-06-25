@@ -9,6 +9,11 @@ DAS_DATA_PATH = f'/raid4/DAS_data/OptoDAS_HOPE/HOPE/'
 DAS_WATERFALL_PATH = os.path.join(DAS_DATA_PATH, "screenshots_HOPB_20250429/Waterfall_RMS_202505*.png")
 DAS_WAVEFORM_PATH = os.path.join(DAS_DATA_PATH, "20250518/proc")
 
+# Optional time range for selecting waterfall images. Use the format
+# "YYYYMMDD_HHMMSS". If either value is "None", the full dataset is used.
+START_TIME = "20250515_000000"  # e.g. "20250515_000000"
+END_TIME = "20250518_235959"    # e.g. "20250518_235959"
+
 # ==== Outputs ==== #
 OUTPUT_PATH = f'/home/hmhuang/Work/Hualien_DAS_Monitoring/Outputs/'
 WATERFALL_NPZ_FOLDER = os.path.join(OUTPUT_PATH, "waterfall_npz")
