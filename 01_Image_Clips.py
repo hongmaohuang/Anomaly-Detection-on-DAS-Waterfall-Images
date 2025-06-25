@@ -92,18 +92,24 @@ if timestamps:
     present = set(timestamps)
     availability = [1 if t in present else 0 for t in expected]
 
-    fig, ax = plt.subplots(figsize=(10, 2))
-    ax.step(expected, availability, where="post")
-    ax.set_ylim(-0.1, 1.1)
-    ax.set_yticks([0, 1], ["Missing", "Available"])
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d %H:%M"))
-    fig.autofmt_xdate()
+    fig, ax = plt.subplots(figsize=(12, 1.8))
+    ax.scatter(timestamps, [1]*len(timestamps), color='royalblue', marker='|', s=80)
+
+    ax.set_yticks([1])
+    ax.set_yticklabels(["Available"])
+    ax.set_ylim(0.9, 1.1)
+    ax.xaxis.set_major_locator(mdates.DayLocator(interval=2))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
+
     ax.set_title("Data Availability")
-    out_png = os.path.join(config.WATERFALL_NPZ_FOLDER, "data_availability.png")
+    fig.autofmt_xdate()
     fig.tight_layout()
+
+    out_png = os.path.join(config.WATERFALL_NPZ_FOLDER, "data_availability.png")
     fig.savefig(out_png, dpi=300)
     plt.close(fig)
-    print(f"Data availability plot saved to: {out_png}\n")
+
+    print(f"Scatter data availability plot saved to: {out_png}\n")
 
 ''' 
 # Testing for different transformation on waterfall images
