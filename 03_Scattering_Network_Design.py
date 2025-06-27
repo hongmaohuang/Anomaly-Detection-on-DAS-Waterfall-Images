@@ -12,7 +12,7 @@ if os.path.exists(config.WAVELET_FOLDER):
 os.makedirs(config.WAVELET_FOLDER)
 
 # === Extract Distance and Duration Information ===
-feature_files = sorted(Path(config.FEATURES_FOLDER).glob("features_*.npz"))
+feature_files = sorted(Path(config.FEATURES_FOLDER).glob(f"features_*-*.npz"))
 file_list = sorted(glob.glob(f'{config.WATERFALL_NPZ_FOLDER}/*.npz'))
 features = np.load(feature_files[0])["features"]
 num_samples = features.shape[1]

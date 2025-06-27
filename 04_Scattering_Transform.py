@@ -12,7 +12,7 @@ if os.path.exists(config.SCATTERING_COEFFICIENTS_FOLDER):
 os.makedirs(config.SCATTERING_COEFFICIENTS_FOLDER)
 
 network = pickle.load(open(f"{config.WAVELET_FOLDER}/scattering_network.pickle", "rb"))
-file = sorted(Path(config.FEATURES_FOLDER).glob("features_*.npz"))
+file = sorted(Path(config.FEATURES_FOLDER).glob(f"features_*-*.npz"))
 file_list = sorted(glob.glob(f'{config.WATERFALL_NPZ_FOLDER}/*.npz'))
 data = np.load(file[0])
 features_array = data["features"] 
