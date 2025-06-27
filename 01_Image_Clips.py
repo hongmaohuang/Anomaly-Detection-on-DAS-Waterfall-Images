@@ -15,9 +15,10 @@ import matplotlib.dates as mdates
 #from pathlib import Path
 #os.chdir(Path(__file__).resolve().parent)
 
-if os.path.exists(config.WATERFALL_NPZ_FOLDER):
-    shutil.rmtree(config.WATERFALL_NPZ_FOLDER)
-os.makedirs(config.WATERFALL_NPZ_FOLDER)
+#if os.path.exists(config.WATERFALL_NPZ_FOLDER):
+#    shutil.rmtree(config.WATERFALL_NPZ_FOLDER)
+#os.makedirs(config.WATERFALL_NPZ_FOLDER)
+os.makedirs(config.FEATURES_FOLDER, exist_ok=True)
 
 print(f"\nYou are using: {config.DURATION_WATERFALL} minutes with {config.TOTAL_DISTANCE_KM} km of DAS waterfall image!\n")
 

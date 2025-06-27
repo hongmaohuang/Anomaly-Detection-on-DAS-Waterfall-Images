@@ -11,9 +11,10 @@ from skimage.filters.rank import entropy
 from skimage.morphology import disk
 from skimage.filters import gaussian, gabor
 
-if os.path.exists(config.FEATURES_FOLDER):
-    shutil.rmtree(config.FEATURES_FOLDER)
-os.makedirs(config.FEATURES_FOLDER)
+#if os.path.exists(config.FEATURES_FOLDER):
+#    shutil.rmtree(config.FEATURES_FOLDER)
+#os.makedirs(config.FEATURES_FOLDER)
+os.makedirs(config.FEATURES_FOLDER, exist_ok=True)
 
 # ==== Load All Waterfall Images ====
 file_list = sorted(glob.glob(f'{config.WATERFALL_NPZ_FOLDER}/*.npz'))
