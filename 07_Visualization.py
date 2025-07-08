@@ -24,14 +24,19 @@ step = config.TOTAL_DISTANCE_KM
 group_size = config.ACCUMULATIONS_PER_FILE
 indices = [int(np.argmin(np.abs(distances - (target + i * step)))) for i in range(len(npz_files))]
 groups = [indices[i:i+group_size] for i in range(0, len(indices), group_size)]
+group_times = [
+    time_vals[min(i + group_size - 1, len(time_vals) - 1)]
+    for i in range(0, len(time_vals), group_size)
+]
 
 for cl in clusters:
     counts = [np.sum(labels[idxs] == cl) for idxs in groups]
     fig, ax = plt.subplots(figsize=(8, 4))
-    ax.plot(time_vals[:len(counts)], counts, marker='o', markersize=2)
+    ax.plot(group_times, counts, marker='o', markersize=2)
+    #ax.plot(time_vals[:len(counts)], counts, marker='o', markersize=2)
     ax.xaxis_date()
-    ax.xaxis.set_major_locator(mdates.MinuteLocator(interval=10))
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+    ax.xaxis.set_major_locator(mdates.MinuteLocator(interval=1000))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d %H:%M"))
     ax.set(xlabel="Time", ylabel="Count", title=f"Cluster {cl} occurrences at {target} km")
     ax.grid(True)
     plt.xticks(rotation=45)
@@ -41,10 +46,11 @@ for cl in clusters:
 
     acc = np.cumsum(counts)
     fig, ax = plt.subplots(figsize=(8, 4))
-    ax.plot(time_vals[:len(acc)], acc, marker='o', markersize=2)
+    #ax.plot(time_vals[:len(acc)], acc, marker='o', markersize=2)
+    ax.plot(group_times, acc, marker='o', markersize=2)
     ax.xaxis_date()
-    ax.xaxis.set_major_locator(mdates.MinuteLocator(interval=10))
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+    ax.xaxis.set_major_locator(mdates.MinuteLocator(interval=1000))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d %H:%M"))
     ax.set(xlabel="Time", ylabel="Accumulated Count", title=f"Accumulated occurrences of Cluster {cl} at {target} km")
     ax.grid(True)
     plt.xticks(rotation=45)
@@ -62,7 +68,9 @@ cmap = plt.cm.get_cmap("tab20", n_labels)
 label_cmap = ListedColormap(cmap.colors[:n_labels])
 preds_per_file = len(preds) // len(npz_files)
 idx = 0
+
 for group in groups:
+    print('Processing group:', group[0].stem, 'to', group[-1].stem)
     waterfalls = [np.load(fp)["waterfall"].mean(axis=2) for fp in reversed(group)]
     stacked = np.vstack(waterfalls)
     block = preds[idx: idx + len(group) * preds_per_file]
