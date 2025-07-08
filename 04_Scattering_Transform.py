@@ -54,7 +54,7 @@ for i in range(0, len(tr_1.data) - segment_len_samples + 1, step_samples):
 print("========================== Confirm the distances ==========================")
 print(f"Origianl Distance: {config.TOTAL_DISTANCE_KM*len(file_list)} km")
 print(f"Distance: {distance_all[-1]} km")
-
+print("Please note that the distance showing above is not the distance of the fiber!")
 # Run the scattering transform
 order_1, order_2 = network.transform(segments, reduce_type=np.median)
 
