@@ -42,7 +42,7 @@ for idx, file in enumerate(file_list):
     jet = cm.get_cmap("jet", 256)(np.arange(256))[:, :3]
     idx_img = cKDTree(jet).query(wf_rgb.reshape(-1,3), k=1)[1]\
                         .reshape(wf_rgb.shape[:2]).astype(np.uint8)
-    dmin, dmax = -113.0, -35.0
+    dmin, dmax = config.ORIGINAL_DMIN, config.ORIGINAL_DMAX
     wf_db = dmin + idx_img.astype(np.float32)*(dmax-dmin)/255.0
     rms_img = wf_db
     num_time_samples, num_channels = rms_img.shape
