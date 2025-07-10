@@ -13,6 +13,8 @@ DAS_WAVEFORM_PATH = os.path.join(DAS_DATA_PATH, "20250518/proc")
 # "YYYYMMDD_HHMMSS". If either value is "None", the full dataset is used.
 START_TIME = "20250515_000000"  # e.g. "20250515_000000"
 END_TIME = "20250518_235959"    # e.g. "20250518_235959"
+ORIGINAL_DMIN = -113.0  # Original minimum dB value in the waterfall images
+ORIGINAL_DMAX = -35.0   # Original maximum dB value in the waterfall images
 
 # ==== Outputs ==== #
 OUTPUT_PATH = f'/home/hmhuang/Work/Hualien_DAS_Monitoring/Outputs/'
@@ -57,8 +59,8 @@ RESOLUTION_2 = 4
 QUALITY_2 = 1
 
 # ==== PCA and ICA ==== #
-RUN_PCA = "NO" # "YES" or "NO"
-PCA_COMPONENTS = 50
+RUN_PCA = "YES" # "YES" or "NO"
+PCA_COMPONENTS = 5
 ICA_COMPONENTS = 5 # Could be estimated using PCA Result 
 
 # ==== Clustering Parameters ==== #
@@ -76,7 +78,8 @@ AGG_LINKAGE = "single"  # "ward", "complete", "average", "single"
 # ==== Visualization Parameters ==== #
 OCCURRENCES_LOC = 13.8896
 ACCUMULATIONS_PER_FILE = 4
-
+IMAGE_STEPS = 2     # Extract images every n files
+IMAGE_PER_GROUP = 5 # Number of images in each group
 
 
 
