@@ -2,10 +2,15 @@ import os
 from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+from scipy.spatial import cKDTree
+from skimage import exposure
+import config
+from datetime import datetime
 import matplotlib.dates as mdates
 from matplotlib.colors import ListedColormap, BoundaryNorm
-from datetime import datetime
-import config
+
+##### Cluster Counts Visualization #####
 
 out_dir = Path(config.VISUALIZATION_FOLDER) / "cluster_counts"
 out_dir.mkdir(parents=True, exist_ok=True)
@@ -58,59 +63,81 @@ for cl in clusters:
     fig.savefig(out_dir / f"cluster{cl}_accumulated_counts.png", dpi=300)
     plt.close(fig)
 
-files_per_group = 5
-step_file = 2
+
+##### Waterfall Visualization with Clustering Results #####
+
+out_dir = Path(config.VISUALIZATION_FOLDER) / "cluster_blackdots"
+out_dir.mkdir(parents=True, exist_ok=True)
+
+label_path = Path(config.CLUSTERING_RESULTS_FOLDER) / "cluster_labels.dat"
 preds = np.loadtxt(label_path, usecols=1, dtype=int, skiprows=1)
+
+step_file = config.IMAGE_STEPS
+files_per_group = config.IMAGE_PER_GROUP
 npz_files = sorted(Path(config.WATERFALL_NPZ_FOLDER).glob("*.npz"))[::step_file]
 groups = [npz_files[i:i+files_per_group] for i in range(0, len(npz_files), files_per_group)]
+
 n_labels = preds.max() + 1
-cmap = plt.cm.get_cmap("tab20", n_labels)
-label_cmap = ListedColormap(cmap.colors[:n_labels])
 preds_per_file = len(preds) // len(npz_files)
-idx = 0
+pred_offset = 0  
+
+jet = cm.get_cmap("jet", 256)(np.arange(256))[:, :3]
+tree = cKDTree(jet)
+dmin, dmax = config.ORIGINAL_DMIN, config.ORIGINAL_DMAX
 
 for group in groups:
-    print('Processing group:', group[0].stem, 'to', group[-1].stem)
-    waterfalls = [np.load(fp)["waterfall"].mean(axis=2) for fp in reversed(group)]
-    stacked = np.vstack(waterfalls)
-    block = preds[idx: idx + len(group) * preds_per_file]
-    idx += len(group) * preds_per_file
+    processed = []
+    for fp in reversed(group):
+        with np.load(fp) as data:
+            wf_rgb = data["waterfall"][..., :3].astype(np.uint8)
+            h, w, _ = wf_rgb.shape
+            lut_idx = tree.query(wf_rgb.reshape(-1, 3), k=1)[1]
+            lut_idx = lut_idx.reshape(h, w).astype(np.uint8)
+            wf_db = dmin + lut_idx.astype(np.float32)*(dmax - dmin)/256.0
+            processed.append(wf_db)
+
+    stacked = np.vstack(processed)
+
+    count = len(group) * preds_per_file
+    block = preds[pred_offset : pred_offset + count]
+    pred_offset += count
+
     overlay = block.reshape(len(group), preds_per_file)
+    overlay = overlay[::-1, :]
     factor = stacked.shape[0] // overlay.shape[0]
-    overlay_img = np.repeat(overlay, factor, axis=0)
+    overlay_img = np.repeat(overlay, 1, axis=0)
 
-    fig, ax = plt.subplots(figsize=(12, 6))
-    ax.imshow(
-        stacked,
-        cmap="gray",
-        aspect="auto",
-        extent=[0, config.TOTAL_DISTANCE_KM, 0, len(group) * config.DURATION_WATERFALL * 60],
-        origin="lower",
-    )
+    total_time = len(group) * config.DURATION_WATERFALL * 60
+    total_dist = config.TOTAL_DISTANCE_KM
+    H, W = overlay_img.shape
+    def idx_to_xy(rows, cols):
+        x = (cols + 0.5) * (total_dist / W)
+        y = (rows + 0.5) * (total_time / H)
+        return x, y
 
-    norm = BoundaryNorm(np.arange(n_labels+1), ncolors=n_labels)
-    im = ax.imshow(
-        overlay_img,
-        cmap=label_cmap,
-        norm=norm,
-        alpha=0.7,
-        aspect="auto",
-        extent=[0, config.TOTAL_DISTANCE_KM, 0, len(group) * config.DURATION_WATERFALL * 60],
-        origin="lower",
-        interpolation="nearest",
-    )
+    stem = group[-1].stem.split('_')
+    endtime = f"{stem[2]}_{stem[3]}"
 
-    cbar = fig.colorbar(im, ax=ax, boundaries=np.arange(n_labels+1))
-    cbar.set_ticks(np.arange(n_labels) + 0.5)
-    cbar.set_ticklabels(np.arange(n_labels))
-    cbar.set_label("Cluster Label", rotation=270, labelpad=15)
+    for cl in range(n_labels):
+        xs, ys= np.where(overlay_img == cl)
+        if ys.size == 0:
+            continue
 
-    ax.set(
-        ylim=(len(group) * config.DURATION_WATERFALL * 60, 0),
-        xlabel="Distance (km)",
-        ylabel="Time (s)",
-    )
-    ts = group[-1].stem.split('_')[2] + '_' + group[-1].stem.split('_')[3]
-    out = Path(config.VISUALIZATION_FOLDER) / f"{ts}_clusters.png"
-    fig.savefig(out, dpi=300)
-    plt.close(fig)
+        xs, ys = idx_to_xy(xs, ys)
+        fig, ax = plt.subplots(figsize=(12, 6))
+        ax.imshow(stacked, cmap="jet", aspect="auto", vmin=dmin, vmax=dmax,
+                  extent=[0, total_dist, total_time, 0])
+        ax.scatter(xs, ys, s=10, marker='.', color='k',
+                   alpha=0.5, linewidths=0, edgecolors='none')
+        ax.set(xlabel="Distance (km)",
+               ylabel="Relative Time (s)",
+               ylim=(total_time, 0),
+               title=f"Cluster {cl} before {endtime}")
+        plt.tight_layout()
+
+        out_path = out_dir / f"{endtime}_cluster{cl}.png"
+        fig.savefig(out_path, dpi=300)
+        plt.close(fig)
+
+    #break 
+
