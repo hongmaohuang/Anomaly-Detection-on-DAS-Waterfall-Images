@@ -80,6 +80,7 @@ OCCURRENCES_LOC = 13.8896
 ACCUMULATIONS_PER_FILE = 4
 IMAGE_STEPS = 2     # Extract images every n files
 IMAGE_PER_GROUP = 5 # Number of images in each group
+VISUALIZATION_METHOD = "features_clusters" #cluster_counts, waterfall_clusters, or features_clusters
 
 
 
